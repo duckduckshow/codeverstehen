@@ -286,6 +286,46 @@ button{
   color:#6b7280;
   margin-top:10px;
 }
+
+.storyCard{
+  display:none;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:12px;
+}
+
+.rewardBox{
+  display:none;
+  margin-top:12px;
+  background:#ecfdf5;
+  border:1px solid #86efac;
+  color:#166534;
+  border-radius:12px;
+  padding:12px;
+  font-weight:700;
+}
+
+.rewardTitle{
+  margin-bottom:4px;
+}
+
+.rewardText{
+  font-size:14px;
+  font-weight:600;
+}
+
+.debugNote{
+  margin-top:6px;
+  font-size:12px;
+  color:#7c2d12;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  padding:8px;
+  border-radius:8px;
+  display:none;
+}
 </style>
 </head>
 <body>
@@ -294,8 +334,8 @@ button{
     <h1>Code lesen lernen – Roblox / Luau</h1>
     <div class="status">
       <div id="levelNameBox">Bereich: –</div>
-      <div id="masteredBox">Richtig gelöst: 0 / 30</div>
-      <div id="remainingBox">Noch offen: 30</div>
+      <div id="masteredBox">Richtig gelöst: 0 / 0</div>
+      <div id="remainingBox">Noch offen: 0</div>
       <div id="scoreBox">Punkte: 0</div>
     </div>
     <div class="progressWrap">
@@ -309,7 +349,7 @@ button{
         <div class="levelTag">Lernspiel</div>
         <div class="question">Wähle einen Bereich.</div>
         <p class="small">
-          Ein Bereich ist erst fertig, wenn alle 30 Aufgaben einmal richtig gelöst wurden.
+          Ein Bereich ist erst fertig, wenn alle Aufgaben einmal richtig gelöst wurden.
           Falsche Aufgaben kommen später wieder. So wird wirklich geübt und nicht nur geraten.
         </p>
 
@@ -327,9 +367,21 @@ button{
           </div>
 
           <div class="levelCard">
+            <h3>Schwierig</h3>
+            <p class="small">Fehlersuche, Debugging, Denkfehler, kniffligere Code-Stellen.</p>
+            <button class="primary" onclick="startLevel('schwierig')">Schwierig starten</button>
+          </div>
+
+          <div class="levelCard">
             <h3>Roblox</h3>
             <p class="small">Part, Transparency, Anchored, CanCollide, Touched, Position, Farbe.</p>
             <button class="primary" onclick="startLevel('roblox')">Roblox starten</button>
+          </div>
+
+          <div class="levelCard">
+            <h3>Mini-Story</h3>
+            <p class="small">Eine kleine Roblox-Geschichte mit zusammenhängenden Missionen.</p>
+            <button class="primary" onclick="startLevel('story')">Story starten</button>
           </div>
         </div>
       </div>
@@ -339,7 +391,12 @@ button{
       <div class="card">
         <div class="levelTag" id="levelTag">Bereich</div>
         <div class="taskType" id="taskType"></div>
+        <div class="debugNote" id="debugNote">Fehlersuche: Finde den Denkfehler oder Syntaxfehler.</div>
         <div class="question" id="question"></div>
+
+        <div class="storyCard" id="storyBox">
+          <div class="small" id="storyText"></div>
+        </div>
 
         <pre id="codeBox" style="display:none;"><code id="codeText"></code></pre>
 
@@ -361,6 +418,10 @@ button{
         <div class="hint" id="hint"></div>
         <div class="feedback" id="feedback"></div>
         <div class="explain" id="explain"></div>
+        <div class="rewardBox" id="rewardBox">
+          <div class="rewardTitle" id="rewardTitle"></div>
+          <div class="rewardText" id="rewardText"></div>
+        </div>
       </div>
 
       <div class="footerNote">
@@ -376,6 +437,7 @@ button{
         <div class="badgeRow">
           <div class="badge" id="finalScore"></div>
           <div class="badge" id="finalSolved"></div>
+          <div class="badge" id="finalReward"></div>
         </div>
         <div class="controls" style="justify-content:center;">
           <button class="primary" onclick="restartCurrentLevel()">Noch einmal spielen</button>
@@ -408,6 +470,19 @@ function orderTask(taskLabel, q, lines, hint, explain){
     mode: "order",
     taskLabel, q, code: "",
     lines, hint, explain
+  };
+}
+
+function debugTask(q, code, answers, correct, hint, explain){
+  return {
+    mode: "mc",
+    taskLabel: "Fehlersuche",
+    q,
+    code,
+    answers,
+    correct,
+    hint,
+    explain
   };
 }
 
@@ -723,6 +798,107 @@ function buildMittel(){
   ];
 }
 
+function buildSchwierig(){
+  return [
+    debugTask(
+      "Wo liegt der Fehler?",
+      'local i = 1\nwhile i <= 3 do\n  print(i)\nend',
+      ['i wird nie verändert.','print(i) ist falsch.','while darf man nicht benutzen.','end ist falsch.'],
+      0,
+      'Die Bedingung bleibt sonst immer wahr.',
+      'Ohne i = i + 1 bleibt i immer 1. Die Schleife endet nie.'
+    ),
+    debugTask(
+      "Was ist hier das Problem?",
+      'for i = 1, 3 do\n  print(i)',
+      ['end fehlt.','for ist falsch geschrieben.','print darf dort nicht stehen.','i darf nicht verwendet werden.'],
+      0,
+      'Eine for-Schleife braucht einen Abschluss.',
+      'Die Schleife ist unvollständig, weil end fehlt.'
+    ),
+    debugTask(
+      "Wo ist der Denkfehler?",
+      'local name = "Mia"\nprint("Hallo" .. name)',
+      ['Es fehlt ein Leerzeichen im Text, wenn man „Hallo Mia“ will.','name darf kein Text sein.','print ist falsch.','.. darf in Luau nie benutzt werden.'],
+      0,
+      'Der Code läuft, aber das Ergebnis ist nicht ganz schön.',
+      'Der Code funktioniert, aber ohne Leerzeichen entsteht „HalloMia“.'
+    ),
+    debugTask(
+      "Was ist hier falsch?",
+      'if true then\n  print("Start")',
+      ['end fehlt.','if darf kein true haben.','print ist falsch.','Man braucht else.'],
+      0,
+      'if-Blöcke müssen abgeschlossen werden.',
+      'Das end zum Schließen des if-Blocks fehlt.'
+    ),
+    debugTask(
+      "Was ist das Problem?",
+      'local x = 1\nrepeat\n  print(x)\nuntil x == 3',
+      ['x wird nie verändert, deshalb endet es nie.','repeat darf nicht mit print benutzt werden.','until ist verboten.','x muss ein Text sein.'],
+      0,
+      'Die Bedingung muss irgendwann wahr werden.',
+      'x bleibt 1. Daher wird x == 3 nie wahr.'
+    ),
+    debugTask(
+      "Wo liegt der Fehler?",
+      'local function SagHallo()\n  print("Hallo")\nend',
+      ['Die Funktion wird nirgends aufgerufen.','Funktionen dürfen kein print enthalten.','end ist falsch.','Der Funktionsname ist verboten.'],
+      0,
+      'Die Funktion ist korrekt geschrieben, aber ...',
+      'Die Funktion ist definiert, wird aber nie benutzt.'
+    ),
+    debugTask(
+      "Was ist hier unpraktisch oder falsch gedacht?",
+      'workspace.Part.Touched:Connect(function(hit)\n  if hit.Name == "Ball" then\n    print("Tor")\n  end\nend)',
+      ['Der Code ist korrekt.','Connect darf nicht benutzt werden.','if darf nicht in einer Funktion stehen.','hit.Name ist immer falsch.'],
+      0,
+      'Nicht jede Fehlersuche muss einen Syntaxfehler haben.',
+      'Hier gibt es keinen eigentlichen Fehler. Der Code ist korrekt.'
+    ),
+    debugTask(
+      "Was ist hier falsch?",
+      'local coins = 0\ncoins == coins + 1\nprint(coins)',
+      ['== vergleicht nur, es erhöht nicht.','print darf keine Variable zeigen.','0 darf nicht verwendet werden.','coins muss ein Text sein.'],
+      0,
+      'Ein Zeichen macht hier den Unterschied.',
+      'Mit == wird verglichen. Zum Verändern braucht man =.'
+    ),
+    debugTask(
+      "Wo liegt der Fehler?",
+      'workspace.Part.Transparency = "1"',
+      ['Transparency sollte hier eine Zahl sein, kein Text.','Transparency gibt es nicht.','Part darf keine Eigenschaften haben.','Die 1 ist zu klein.'],
+      0,
+      'Die Eigenschaft erwartet normalerweise einen Zahlenwert.',
+      'Hier wurde "1" als Text geschrieben, nicht als Zahl.'
+    ),
+    debugTask(
+      "Was ist hier das Problem?",
+      'local x = 3\nwhile x > 0 do\n  print(x)\n  x = x + 1\nend',
+      ['x wird größer statt kleiner, also endet die Schleife nie.','print(x) ist falsch.','while x > 0 ist immer verboten.','3 darf nicht verwendet werden.'],
+      0,
+      'Soll x am Ende 0 erreichen?',
+      'Wenn x größer wird, bleibt x > 0 immer wahr.'
+    ),
+    debugTask(
+      "Was ist hier das Problem?",
+      'workspace.Part.Touched:Connect(function()\n  print(hit.Name)\nend)',
+      ['hit wurde in der Funktion gar nicht als Parameter angegeben.','Touched braucht immer zwei Parameter.','print darf in Touched nicht verwendet werden.','Name ist hier verboten.'],
+      0,
+      'Woher soll hit kommen?',
+      'Wenn man hit.Name benutzen will, muss hit auch als Parameter in function(hit) stehen.'
+    ),
+    debugTask(
+      "Wo liegt der Fehler?",
+      'local name = Mia\nprint(name)',
+      ['Mia müsste als Text in Anführungszeichen stehen.','print(name) ist falsch.','local ist falsch.','name darf nicht benutzt werden.'],
+      0,
+      'Texte brauchen Anführungszeichen.',
+      'Ohne Anführungszeichen ist Mia kein normaler String.'
+    )
+  ];
+}
+
 function buildRoblox(){
   return [
     mc("Roblox lesen", 'Was passiert hier wahrscheinlich?', 'local part = workspace.Block\nprint(part.Name)',
@@ -930,11 +1106,114 @@ function buildRoblox(){
   ];
 }
 
+function buildStory(){
+  return [
+    {
+      mode: "mc",
+      taskLabel: "Mini-Story – Mission 1",
+      storyText: "Du baust ein kleines Fußball-Tor. Zuerst soll erkannt werden, wenn ein Ball das Tor berührt.",
+      q: "Welcher Code passt am besten zu dieser Idee?",
+      code: 'workspace.Tor.Touched:Connect(function(hit)\n  if hit.Name == "Ball" then\n    print("Tor")\n  end\nend)',
+      answers: [
+        'Der Code meldet „Tor“, wenn ein Objekt namens Ball das Tor berührt.',
+        'Der Code färbt das Tor sofort grün.',
+        'Der Code erstellt einen neuen Ball.',
+        'Der Code bewegt das Tor nach oben.'
+      ],
+      correct: 0,
+      hint: 'Touched reagiert auf Berührung.',
+      explain: 'Das Tor reagiert hier auf Berührung und prüft dann den Namen des berührenden Objekts.'
+    },
+    {
+      mode: "mc",
+      taskLabel: "Mini-Story – Mission 2",
+      storyText: "Jetzt soll das Tor nach einem Treffer sichtbar grün werden.",
+      q: "Was passiert in diesem Code?",
+      code: 'workspace.Tor.BrickColor = BrickColor.new("Lime green")',
+      answers: [
+        'Das Tor wird grün.',
+        'Das Tor verschwindet.',
+        'Das Tor wird größer.',
+        'Der Ball springt.'
+      ],
+      correct: 0,
+      hint: 'BrickColor verändert die Farbe.',
+      explain: 'Mit BrickColor.new("Lime green") bekommt das Tor eine grüne Farbe.'
+    },
+    {
+      mode: "mc",
+      taskLabel: "Mini-Story – Mission 3",
+      storyText: "Nach dem Treffer soll eine Meldung erscheinen.",
+      q: "Welche Ausgabe macht der Code?",
+      code: 'print("Treffer!")',
+      answers: [
+        'Im Output erscheint Treffer!',
+        'Das Tor wird zerstört.',
+        'Der Ball bekommt einen neuen Namen.',
+        'Es passiert nichts.'
+      ],
+      correct: 0,
+      hint: 'print schreibt in den Output.',
+      explain: 'Der Text wird einfach im Output angezeigt.'
+    },
+    {
+      mode: "order",
+      taskLabel: "Mini-Story – Mission 4",
+      storyText: "Ordne die Schritte für einen Treffer sinnvoll.",
+      q: "Welche Reihenfolge passt?",
+      code: "",
+      lines: [
+        'workspace.Tor.Touched:Connect(function(hit)',
+        'if hit.Name == "Ball" then',
+        'print("Tor")',
+        'end',
+        'end)'
+      ],
+      hint: 'Erst beginnt das Ereignis, dann kommt die Prüfung.',
+      explain: 'Zuerst Event, dann if, dann Ausgabe, dann die beiden Abschlüsse.'
+    },
+    {
+      mode: "mc",
+      taskLabel: "Mini-Story – Mission 5",
+      storyText: "Das Tor soll nach einem Treffer kurz verschwinden, als kleines Erfolgssignal.",
+      q: "Was macht dieser Code?",
+      code: 'workspace.Tor.Transparency = 1',
+      answers: [
+        'Das Tor wird unsichtbar.',
+        'Das Tor wird rot.',
+        'Das Tor bewegt sich.',
+        'Das Tor bekommt Kollision.'
+      ],
+      correct: 0,
+      hint: 'Transparency betrifft Sichtbarkeit.',
+      explain: 'Mit Transparency = 1 wird das Objekt unsichtbar.'
+    },
+    {
+      mode: "mc",
+      taskLabel: "Mini-Story – Mission 6",
+      storyText: "Nun soll das Tor danach wieder sichtbar werden.",
+      q: "Welche Zeile passt?",
+      code: 'workspace.Tor.Transparency = ?',
+      answers: [
+        '0',
+        '1',
+        '"sichtbar"',
+        'true'
+      ],
+      correct: 0,
+      hint: '0 bedeutet sichtbar.',
+      explain: 'Mit 0 wird das Tor wieder normal sichtbar.'
+    }
+  ];
+}
+
 /* ===== Spielzustand ===== */
 const allLevels = {
   leicht: buildLeicht(),
   mittel: buildMittel(),
-  roblox: buildRoblox()
+  schwierig: buildSchwierig(),
+  roblox: buildRoblox(),
+  story: buildStory()
 };
 
 let currentLevelKey = null;
@@ -947,6 +1226,7 @@ let answered = false;
 let currentCorrectShown = -1;
 let selectedOrder = [];
 let orderDisplayItems = [];
+let rewardMilestonesShown = new Set();
 
 /* ===== Elemente ===== */
 const startScreen = document.getElementById("startScreen");
@@ -973,6 +1253,13 @@ const orderContainer = document.getElementById("orderContainer");
 const orderArea = document.getElementById("orderArea");
 const selectedInfo = document.getElementById("selectedInfo");
 const clearOrderBtn = document.getElementById("clearOrderBtn");
+const storyBox = document.getElementById("storyBox");
+const storyText = document.getElementById("storyText");
+const debugNote = document.getElementById("debugNote");
+
+const rewardBox = document.getElementById("rewardBox");
+const rewardTitle = document.getElementById("rewardTitle");
+const rewardText = document.getElementById("rewardText");
 
 /* ===== Screens ===== */
 function switchScreen(screen){
@@ -987,7 +1274,9 @@ function backToMenu(){
 function levelDisplayName(key){
   if(key === "leicht") return "Leicht";
   if(key === "mittel") return "Mittel";
+  if(key === "schwierig") return "Schwierig";
   if(key === "roblox") return "Roblox";
+  if(key === "story") return "Mini-Story";
   return "–";
 }
 
@@ -1002,6 +1291,8 @@ function startLevel(key){
   score = 0;
   mastered = 0;
   queue = shuffle(currentLevelTasks.slice());
+  rewardMilestonesShown = new Set();
+
   switchScreen(gameScreen);
   loadNextCurrentTask();
 }
@@ -1030,12 +1321,13 @@ function loadNextCurrentTask(){
 
 /* ===== Anzeige ===== */
 function updateStatus(){
+  const totalCount = currentLevelTasks.length;
   levelNameBox.textContent = "Bereich: " + levelDisplayName(currentLevelKey);
-  masteredBox.textContent = "Richtig gelöst: " + mastered + " / 30";
+  masteredBox.textContent = "Richtig gelöst: " + mastered + " / " + totalCount;
   remainingBox.textContent = "Noch offen: " + queue.length;
   scoreBox.textContent = "Punkte: " + score;
 
-  const percent = (mastered / 30) * 100;
+  const percent = totalCount > 0 ? (mastered / totalCount) * 100 : 0;
   progressBar.style.width = percent + "%";
 }
 
@@ -1044,12 +1336,26 @@ function renderTask(){
   taskType.textContent = currentTask.taskLabel;
   question.textContent = currentTask.q;
 
+  debugNote.style.display = currentLevelKey === "schwierig" ? "block" : "none";
+
+  if(currentTask.storyText){
+    storyBox.style.display = "block";
+    storyText.textContent = currentTask.storyText;
+  } else {
+    storyBox.style.display = "none";
+    storyText.textContent = "";
+  }
+
   feedback.textContent = "";
   explain.textContent = "";
   hintEl.textContent = currentTask.hint || "";
   hintEl.style.display = "none";
   hintBtn.style.display = currentTask.hint ? "inline-block" : "none";
   hintBtn.textContent = "Hinweis anzeigen";
+
+  rewardBox.style.display = "none";
+  rewardTitle.textContent = "";
+  rewardText.textContent = "";
 
   answersEl.innerHTML = "";
   orderArea.innerHTML = "";
@@ -1100,7 +1406,7 @@ function renderOrderTask(){
     const div = document.createElement("div");
     div.className = "orderLine";
     div.dataset.displayIndex = displayIndex;
-    div.onclick = () => toggleOrderItem(displayIndex, div);
+    div.onclick = () => toggleOrderItem(displayIndex);
     orderArea.appendChild(div);
   });
 
@@ -1144,6 +1450,42 @@ function escapeHtml(str){
     .replaceAll(">", "&gt;");
 }
 
+/* ===== Belohnungen ===== */
+function maybeShowReward(){
+  const rewards = [];
+
+  if(mastered >= 5 && !rewardMilestonesShown.has("5")){
+    rewardMilestonesShown.add("5");
+    rewards.push({
+      title: "⭐ Checkpoint erreicht",
+      text: "Du hast schon 5 Aufgaben richtig gelöst."
+    });
+  }
+
+  if(mastered >= 10 && !rewardMilestonesShown.has("10")){
+    rewardMilestonesShown.add("10");
+    rewards.push({
+      title: "⭐⭐ Code-Spürnase",
+      text: "Du hast schon 10 Aufgaben richtig gelöst."
+    });
+  }
+
+  if(currentLevelKey === "story" && mastered === currentLevelTasks.length && !rewardMilestonesShown.has("story_end")){
+    rewardMilestonesShown.add("story_end");
+    rewards.push({
+      title: "🏁 Mission geschafft",
+      text: "Du hast die Mini-Story erfolgreich abgeschlossen."
+    });
+  }
+
+  if(rewards.length > 0){
+    const lastReward = rewards[rewards.length - 1];
+    rewardBox.style.display = "block";
+    rewardTitle.textContent = lastReward.title;
+    rewardText.textContent = lastReward.text;
+  }
+}
+
 /* ===== Interaktion ===== */
 function toggleHint(){
   if(hintEl.style.display === "block"){
@@ -1171,6 +1513,7 @@ function answerMc(shownIndex, btn){
     score += 10;
     mastered++;
     queue.shift();
+    maybeShowReward();
   } else {
     btn.classList.add("wrong");
     feedback.textContent = "Noch nicht richtig. Diese Aufgabe kommt später noch einmal.";
@@ -1188,7 +1531,7 @@ function answerMc(shownIndex, btn){
   }
 }
 
-function toggleOrderItem(displayIndex, div){
+function toggleOrderItem(displayIndex){
   if(answered) return;
 
   const existingPos = selectedOrder.indexOf(displayIndex);
@@ -1228,6 +1571,7 @@ function checkOrderTask(){
     score += 12;
     mastered++;
     queue.shift();
+    maybeShowReward();
   } else {
     feedback.textContent = "Noch nicht richtig. Diese Aufgabe kommt später noch einmal.";
     explain.textContent = currentTask.explain || "";
@@ -1256,11 +1600,24 @@ function nextTask(){
 /* ===== Ende ===== */
 function finishLevel(){
   switchScreen(endScreen);
+  const totalCount = currentLevelTasks.length;
+
   document.getElementById("endTitle").textContent = levelDisplayName(currentLevelKey) + " geschafft!";
   document.getElementById("finalText").textContent =
-    "Alle 30 Aufgaben dieses Bereichs wurden richtig gelöst. Falsche Aufgaben sind so lange wiedergekommen, bis sie verstanden wurden.";
+    "Alle Aufgaben dieses Bereichs wurden richtig gelöst. Falsche Aufgaben sind so lange wiedergekommen, bis sie verstanden wurden.";
   document.getElementById("finalScore").textContent = "Punkte: " + score;
-  document.getElementById("finalSolved").textContent = "Richtig gelöst: 30 / 30";
+  document.getElementById("finalSolved").textContent = "Richtig gelöst: " + totalCount + " / " + totalCount;
+
+  if(currentLevelKey === "story"){
+    document.getElementById("finalReward").textContent = "Belohnung: Mission geschafft";
+  } else if(mastered >= 10){
+    document.getElementById("finalReward").textContent = "Belohnung: Code-Spürnase";
+  } else if(mastered >= 5){
+    document.getElementById("finalReward").textContent = "Belohnung: Checkpoint erreicht";
+  } else {
+    document.getElementById("finalReward").textContent = "Belohnung: Bereich geschafft";
+  }
+
   progressBar.style.width = "100%";
 }
 </script>
