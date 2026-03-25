@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Roblox Code-Abenteuer – Lesen und Verstehen</title>
+<style>
+* { box-sizing: border-box; font-family: system-ui, sans-serif; }
+
+body{
+  margin:0;
+  background:#eef2f7;
+  display:flex;
+  justify-content:center;
+  padding:14px;
+}
+
+.app{
+  width:100%;
+  max-width:980px;
+  background:white;
+  border-radius:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.08);
+  overflow:hidden;
+}
+
+.topbar{
+  background:linear-gradient(135deg, #3b82f6, #2563eb);
+  color:white;
+  padding:14px 16px;
+}
+
+.topbar h1{
+  margin:0 0 8px 0;
+  font-size:22px;
+}
+
+.status{
+  display:flex;
+  gap:14px;
+  flex-wrap:wrap;
+  font-size:14px;
+}
+
+.main{
+  padding:16px;
+}
+
+.screen{
+  display:none;
+}
+
+.screen.active{
+  display:block;
+}
+
+.card{
+  background:#f8fafc;
+  border:1px solid #dbe4ee;
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:14px;
+}
+
+.levelTag{
+  display:inline-block;
+  background:#e0edff;
+  color:#184a9c;
+  border-radius:999px;
+  padding:4px 10px;
+  font-size:12px;
+  font-weight:700;
+  margin-bottom:8px;
+}
+
+.taskType{
+  font-size:12px;
+  color:#4b5563;
+  margin-bottom:8px;
+  font-weight:700;
+}
+
+.question{
+  font-size:18px;
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+pre{
+  background:#111827;
+  color:#f9fafb;
+  border-radius:10px;
+  padding:12px;
+  overflow-x:auto;
+  margin:10px 0;
+  font-size:13px;
+}
+
+.answers{
+  display:grid;
+  gap:8px;
+  margin-top:10px;
+}
+
+.answerBtn{
+  border:1px solid #cfd8e3;
+  background:white;
+  border-radius:10px;
+  padding:10px;
+  text-align:left;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.answerBtn:hover{
+  background:#f1f5f9;
+}
+
+.answerBtn.correct{
+  background:#dcfce7;
+  border-color:#22c55e;
+}
+
+.answerBtn.wrong{
+  background:#fee2e2;
+  border-color:#ef4444;
+}
+
+.answerBtn.disabled{
+  pointer-events:none;
+}
+
+.feedback{
+  min-height:24px;
+  margin-top:10px;
+  font-weight:700;
+}
+
+.explain{
+  min-height:24px;
+  font-size:14px;
+  color:#4b5563;
+  margin-top:6px;
+}
+
+.controls{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+button{
+  border:none;
+  border-radius:10px;
+  padding:10px 14px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.primary{
+  background:#2563eb;
+  color:white;
+}
+
+.primary:hover{
+  background:#1d4ed8;
+}
+
+.secondary{
+  background:white;
+  color:#111827;
+  border:1px solid #cfd8e3;
+}
+
+.secondary:hover{
+  background:#f8fafc;
+}
+
+.progressWrap{
+  background:#e5e7eb;
+  border-radius:999px;
+  height:12px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.progressBar{
+  height:100%;
+  width:0%;
+  background:#22c55e;
+  transition:width 0.25s;
+}
+
+.small{
+  font-size:13px;
+  color:#4b5563;
+}
+
+.hint{
+  display:none;
+  margin-top:10px;
+  border-left:4px solid #3b82f6;
+  background:#eff6ff;
+  padding:10px;
+  border-radius:8px;
+  font-size:14px;
+}
+
+.center{
+  text-align:center;
+}
+
+.badgeRow{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.badge{
+  padding:6px 10px;
+  border-radius:999px;
+  background:#f3f4f6;
+  font-size:12px;
+  font-weight:700;
+}
+
+.orderArea{
+  display:grid;
+  gap:8px;
+  margin-top:10px;
+}
+
+.orderLine{
+  padding:10px;
+  border:1px solid #cfd8e3;
+  border-radius:10px;
+  background:white;
+  cursor:pointer;
+}
+
+.orderLine.selected{
+  background:#dbeafe;
+  border-color:#60a5fa;
+}
+
+.footerNote{
+  font-size:12px;
+  color:#6b7280;
+  margin-top:10px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <h1>Roblox Code-Abenteuer</h1>
+    <div class="status">
+      <div id="scoreBox">Punkte: 0</div>
+      <div id="starsBox">Sterne: 0</div>
+      <div id="livesBox">Herzen: 3</div>
+      <div id="levelBox">Level: 1</div>
+    </div>
+    <div class="progressWrap">
+      <div class="progressBar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="screen active" id="startScreen">
+      <div class="card center">
+        <div class="levelTag">Lernspiel</div>
+        <div class="question">Lies kleine Luau-/Roblox-Code-Stücke und finde heraus, was sie bedeuten.</div>
+        <p class="small">
+          Das Spiel mischt mehrere Aufgabentypen. Es geht nicht um schweres Programmieren,
+          sondern um Verstehen: Was macht der Code? In welcher Reihenfolge passiert etwas?
+          Welche Zeile fehlt?
+        </p>
+        <div class="badgeRow" style="justify-content:center;">
+          <div class="badge">kleine Schritte</div>
+          <div class="badge">Hinweise</div>
+          <div class="badge">sofortige Rückmeldung</div>
+          <div class="badge">ohne Zeitdruck</div>
+        </div>
+        <div class="controls" style="justify-content:center; margin-top:16px;">
+          <button class="primary" onclick="startGame()">Spiel starten</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="gameScreen">
+      <div class="card">
+        <div class="levelTag" id="levelTag">Level 1</div>
+        <div class="taskType" id="taskType"></div>
+        <div class="question" id="question"></div>
+        <pre id="codeBox" style="display:none;"><code id="codeText"></code></pre>
+
+        <div id="orderContainer" style="display:none;">
+          <div class="small">Klicke die Zeilen in der richtigen Reihenfolge an:</div>
+          <div class="orderArea" id="orderArea"></div>
+        </div>
+
+        <div class="answers" id="answers"></div>
+
+        <div class="controls">
+          <button class="secondary" id="hintBtn" onclick="toggleHint()">Hinweis anzeigen</button>
+          <button class="primary" onclick="nextTask()">Nächste Aufgabe</button>
+        </div>
+
+        <div class="hint" id="hint"></div>
+        <div class="feedback" id="feedback"></div>
+        <div class="explain" id="explain"></div>
+      </div>
+      <div class="footerNote">
+        Tipp: Erst Zeile für Zeile lesen. Nicht alles auf einmal.
+      </div>
+    </div>
+
+    <div class="screen" id="endScreen">
+      <div class="card center">
+        <div class="levelTag">Runde fertig</div>
+        <div class="question">Gut gemacht. Hier ist dein Ergebnis:</div>
+        <p id="finalText"></p>
+        <div class="badgeRow" style="justify-content:center;">
+          <div class="badge" id="finalScore"></div>
+          <div class="badge" id="finalStars"></div>
+        </div>
+        <div class="controls" style="justify-content:center; margin-top:16px;">
+          <button class="primary" onclick="restartGame()">Neu starten</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const tasks = [
+  {
+    level:1,
+    type:"story",
+    taskLabel:"Aufgabentyp: Was passiert hier?",
+    q:"Welche Geschichte passt zu diesem Code?",
+    code:'print("Hallo")',
+    answers:[
+      'Im Output erscheint "Hallo".',
+      'Ein Part wird erstellt.',
+      'Der Spieler springt.',
+      'Es passiert nichts.'
+    ],
+    correct:0,
+    hint:"print schreibt Text in den Output.",
+    explain:'Der Code gibt einfach den Text "Hallo" aus.'
+  },
+  {
+    level:1,
+    type:"output",
+    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
+    q:"Was wird im Output angezeigt?",
+    code:'local name = "Mia"\nprint(name)',
+    answers:[
+      'Mia',
+      'name',
+      'Hallo Mia',
+      'gar nichts'
+    ],
+    correct:0,
+    hint:"Die Variable speichert den Text Mia.",
+    explain:"name enthält Mia. print(name) gibt also Mia aus."
+  },
+  {
+    level:1,
+    type:"story",
+    taskLabel:"Aufgabentyp: Was passiert hier?",
+    q:"Welche Beschreibung passt?",
+    code:"local coins = 2\ncoins = coins + 1\nprint(coins)",
+    answers:[
+      'Es wird 3 ausgegeben.',
+      'Es wird 2 ausgegeben.',
+      'Es wird 1 ausgegeben.',
+      'coins wird gelöscht.'
+    ],
+    correct:0,
+    hint:"coins wird um 1 größer.",
+    explain:"2 plus 1 ergibt 3."
+  },
+  {
+    level:1,
+    type:"condition",
+    taskLabel:"Aufgabentyp: Welche Bedingung passt?",
+    q:"Welche Aussage ist richtig?",
+    code:'local offen = true\nif offen then\n  print("Tür auf")\nend',
+    answers:[
+      'Weil offen wahr ist, wird "Tür auf" ausgegeben.',
+      'Weil offen wahr ist, wird nichts ausgegeben.',
+      'offen wird automatisch false.',
+      'Der Code ist unvollständig.'
+    ],
+    correct:0,
+    hint:"if läuft nur, wenn die Bedingung wahr ist.",
+    explain:'offen ist true. Darum läuft der Code im if-Block.'
+  },
+  {
+    level:1,
+    type:"missing",
+    taskLabel:"Aufgabentyp: Welche Zeile fehlt?",
+    q:"Welche Zeile fehlt, damit von 1 bis 3 gezählt wird?",
+    code:"local i = 1\nwhile i <= 3 do\n  print(i)\n  ?\nend",
+    answers:[
+      "i = i + 1",
+      "print(i)",
+      "local i = 0",
+      "i == i + 1"
+    ],
+    correct:0,
+    hint:"Die Zahl muss größer werden.",
+    explain:"Ohne i = i + 1 würde die Schleife nie fertig werden."
+  },
+  {
+    level:1,
+    type:"output",
+    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
+    q:"Was wird ausgegeben?",
+    code:'for i = 1, 3 do\n  print("Hi")\nend',
+    answers:[
+      'Hi drei Mal',
+      'Hi ein Mal',
+      '1, 2, 3',
+      'gar nichts'
+    ],
+    correct:0,
+    hint:"Die Schleife läuft 3-mal.",
+    explain:'Der Text "Hi" wird in jedem Durchgang ausgegeben.'
+  },
+  {
+    level:2,
+    type:"story",
+    taskLabel:"Aufgabentyp: Was passiert hier?",
+    q:"Welche Geschichte passt?",
+    code:'local farbe = "rot"\nif farbe == "rot" then\n  print("Stop")\nend',
+    answers:[
+      'Stop wird ausgegeben.',
+      'farbe wird zu Stop.',
+      'Es wird nichts ausgegeben.',
+      'rot wird gelöscht.'
+    ],
+    correct:0,
+    hint:"Die Texte sind gleich.",
+    explain:'Weil farbe genau "rot" ist, ist die Bedingung wahr.'
+  },
+  {
+    level:2,
+    type:"story",
+    taskLabel:"Aufgabentyp: Was passiert hier?",
+    q:"Was beschreibt den Code am besten?",
+    code:'workspace.Part.Transparency = 1',
+    answers:[
+      'Der Part wird unsichtbar.',
+      'Der Part wird größer.',
+      'Der Part wird rot.',
+      'Der Part springt.'
+    ],
+    correct:0,
+    hint:"Transparency bedeutet Durchsichtigkeit.",
+    explain:"1 bedeutet ganz durchsichtig."
+  },
+  {
+    level:2,
+    type:"output",
+    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
+    q:"Was erscheint im Output?",
+    code:"for i = 2, 4 do\n  print(i)\nend",
+    answers:[
+      '2, dann 3, dann 4',
+      '1, dann 2, dann 3',
+      'nur 4',
+      'gar nichts'
+    ],
+    correct:0,
+    hint:"Die Schleife startet bei 2 und endet bei 4.",
+    explain:"i nimmt die Werte 2, 3 und 4 an."
+  },
+  {
+    level:2,
+    type:"condition",
+    taskLabel:"Aufgabentyp: Welche Bedingung passt?",
+    q:"Welche Aussage passt zu diesem Code?",
+    code:'local lichtAn = false\nif not lichtAn then\n  print("dunkel")\nend',
+    answers:[
+      'dunkel wird ausgegeben.',
+      'Es wird nichts ausgegeben.',
+      'lichtAn wird true.',
+      'Es wird hell ausgegeben.'
+    ],
+    correct:0,
+    hint:"not false wird zu true.",
+    explain:"Da lichtAn false ist, ist not lichtAn wahr."
+  },
+  {
+    level:2,
+    type:"missing",
+    taskLabel:"Aufgabentyp: Welche Zeile fehlt?",
+    q:"Welche Zeile fehlt, damit die Tür geschlossen bleibt, wenn kein Schlüssel da ist?",
+    code:'local hatSchluessel = false\nif hatSchluessel then\n  print("Tür auf")\nelse\n  ?\nend',
+    answers:[
+      'print("Tür zu")',
+      'print("Tür auf")',
+      'hatSchluessel = true',
+      'end'
+    ],
+    correct:0,
+    hint:"Im else-Teil passiert das Gegenteil.",
+    explain:'Wenn kein Schlüssel da ist, passt "Tür zu".'
+  },
+  {
+    level:2,
+    type:"order",
+    taskLabel:"Aufgabentyp: Welche Reihenfolge ist richtig?",
+    q:"In welcher Reihenfolge läuft dieser Code ab?",
+    code:"",
+    orderLines:[
+      'print("Start")',
+      'wait(1)',
+      'print("Ende")'
+    ],
+    correctOrder:[0,1,2],
+    hint:"Der Code wird von oben nach unten gelesen.",
+    explain:"Zuerst kommt Start, dann eine Pause, dann Ende."
+  },
+  {
+    level:3,
+    type:"story",
+    taskLabel:"Aufgabentyp: Was passiert hier?",
+    q:"Welche Beschreibung passt?",
+    code:'workspace.Part.Touched:Connect(function()\n  print("berührt")\nend)',
+    answers:[
+      'Wenn etwas den Part berührt, erscheint "berührt".',
+      'Beim Start erscheint sofort "berührt".',
+      'Der Part berührt sich selbst.',
+      'Es passiert nie etwas.'
+    ],
+    correct:0,
+    hint:"Touched reagiert auf Berührung.",
+    explain:"Der Code wird erst bei einer Berührung ausgeführt."
+  },
+  {
+    level:3,
+    type:"output",
+    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
+    q:"Was wird hier ausgegeben?",
+    code:'local x = "rot"\nprint(x)\nx = "blau"\nprint(x)',
+    answers:[
+      'erst rot, dann blau',
+      'erst blau, dann rot',
+      'nur blau',
+      'nur rot'
+    ],
+    correct:0,
+    hint:"Die Variable ändert ihren Wert.",
+    explain:"Am Anfang steht rot drin, später blau."
+  },
+  {
+    level:3,
+    type:"story",
+    taskLabel:"Aufgabentyp: Was passiert hier?",
+    q:"Welche Geschichte passt?",
+    code:"local energie = 2\nwhile energie > 0 do\n  print(\"arbeiten\")\n  energie = energie - 1\nend\nprint(\"fertig\")",
+    answers:[
+      'arbeiten erscheint zwei Mal, danach fertig.',
+      'fertig erscheint zuerst.',
+      'arbeiten erscheint unendlich oft.',
+      'nur fertig erscheint.'
+    ],
+    correct:0,
+    hint:"energie wird kleiner.",
+    explain:"Bei 2 und 1 läuft die Schleife, danach kommt fertig."
+  },
+  {
+    level:3,
+    type:"missing",
+    taskLabel:"Aufgabentyp: Welche Zeile fehlt?",
+    q:"Welche Zeile fehlt, damit eine Funktion wirklich benutzt wird?",
+    code:'local function SagHallo()\n  print("Hallo")\nend\n?',
+    answers:[
+      "SagHallo()",
+      'print("SagHallo")',
+      'local function Hallo()',
+      'end'
+    ],
+    correct:0,
+    hint:"Eine Funktion muss aufgerufen werden.",
+    explain:"Mit SagHallo() wird die Funktion gestartet."
+  },
+  {
+    level:3,
+    type:"condition",
+    taskLabel:"Aufgabentyp: Welche Bedingung passt?",
+    q:"Welche Aussage stimmt?",
+    code:'local leben = 0\nif leben == 0 then\n  print("Game Over")\nend',
+    answers:[
+      'Game Over wird ausgegeben, weil leben 0 ist.',
+      'Es wird nichts ausgegeben.',
+      'leben wird zu 1.',
+      'Game Over wird nur bei leben 1 ausgegeben.'
+    ],
+    correct:0,
+    hint:"== vergleicht Werte.",
+    explain:"leben ist 0. Deshalb ist die Bedingung wahr."
+  },
+  {
+    level:3,
+    type:"order",
+    taskLabel:"Aufgabentyp: Welche Reihenfolge ist richtig?",
+    q:"Ordne die Zeilen so, dass zuerst gezählt und dann ausgegeben wird.",
+    code:"",
+    orderLines:[
+      "local coins = 1",
+      "coins = coins + 1",
+      "print(coins)"
+    ],
+    correctOrder:[0,1,2],
+    hint:"Erst Variable anlegen, dann ändern, dann ausgeben.",
+    explain:"Nur in dieser Reihenfolge entsteht das richtige Ergebnis."
+  },
+  {
+    level:4,
+    type:"story",
+    taskLabel:"Aufgabentyp: Was passiert hier?",
+    q:"Welche Beschreibung passt?",
+    code:'local function ZeigText()\n  print("Test")\nend\nZeigText()\nZeigText()',
+    answers:[
+      'Test wird zwei Mal ausgegeben.',
+      'Test wird ein Mal ausgegeben.',
+      'Es passiert nichts.',
+      'Es gibt einen Fehler.'
+    ],
+    correct:0,
+    hint:"Die Funktion wird zweimal aufgerufen.",
+    explain:"Jeder Aufruf führt den Inhalt der Funktion erneut aus."
+  },
+  {
+    level:4,
+    type:"output",
+    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
+    q:"Was wird ausgegeben?",
+    code:'local name = "Alex"\nprint("Hallo " .. name)',
+    answers:[
+      'Hallo Alex',
+      'Hallo name',
+      'Alex Hallo',
+      'gar nichts'
+    ],
+    correct:0,
+    hint:".. verbindet Texte.",
+    explain:'Der Text "Hallo " wird mit dem Namen verbunden.'
+  },
+  {
+    level:4,
+    type:"story",
+    taskLabel:"Aufgabentyp: Was passiert hier?",
+    q:"Welche Geschichte passt?",
+    code:'workspace.Part.CanCollide = false',
+    answers:[
+      'Man kann wahrscheinlich durch den Part durchgehen.',
+      'Der Part wird unsichtbar.',
+      'Der Part wird verankert.',
+      'Der Part wird gelöscht.'
+    ],
+    correct:0,
+    hint:"CanCollide betrifft Zusammenstoßen.",
+    explain:"Wenn Kollision aus ist, kann man oft hindurchgehen."
+  },
+  {
+    level:4,
+    type:"condition",
+    taskLabel:"Aufgabentyp: Welche Bedingung passt?",
+    q:"Welche Aussage stimmt?",
+    code:'local sichtbar = false\nworkspace.Part.Transparency = 0\nif sichtbar == false then\n  workspace.Part.Transparency = 1\nend',
+    answers:[
+      'Der Part wird unsichtbar.',
+      'Der Part bleibt sichtbar.',
+      'Der Part wird größer.',
+      'Es passiert gar nichts.'
+    ],
+    correct:0,
+    hint:"Die Bedingung ist wahr.",
+    explain:"Weil sichtbar false ist, wird Transparency auf 1 gesetzt."
+  },
+  {
+    level:4,
+    type:"order",
+    taskLabel:"Aufgabentyp: Welche Reihenfolge ist richtig?",
+    q:"Ordne die Zeilen für eine kleine if-Abfrage.",
+    code:"",
+    orderLines:[
+      'local offen = true',
+      'if offen then',
+      'print("Tür auf")',
+      'end'
+    ],
+    correctOrder:[0,1,2,3],
+    hint:"Erst Variable, dann if, dann Inhalt, dann end.",
+    explain:"So ist ein einfacher if-Block aufgebaut."
+  }
+];
+
+let gameTasks = [];
+let currentIndex = 0;
+let score = 0;
+let stars = 0;
+let lives = 3;
+let answered = false;
+let selectedOrder = [];
+let hintShown = false;
+
+const startScreen = document.getElementById("startScreen");
+const gameScreen = document.getElementById("gameScreen");
+const endScreen = document.getElementById("endScreen");
+
+const scoreBox = document.getElementById("scoreBox");
+const starsBox = document.getElementById("starsBox");
+const livesBox = document.getElementById("livesBox");
+const levelBox = document.getElementById("levelBox");
+const progressBar = document.getElementById("progressBar");
+
+const levelTag = document.getElementById("levelTag");
+const taskType = document.getElementById("taskType");
+const question = document.getElementById("question");
+const codeBox = document.getElementById("codeBox");
+const codeText = document.getElementById("codeText");
+const answersEl = document.getElementById("answers");
+const feedback = document.getElementById("feedback");
+const explain = document.getElementById("explain");
+const hintEl = document.getElementById("hint");
+const hintBtn = document.getElementById("hintBtn");
+const orderContainer = document.getElementById("orderContainer");
+const orderArea = document.getElementById("orderArea");
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame(){
+  gameTasks = shuffle(tasks);
+  currentIndex = 0;
+  score = 0;
+  stars = 0;
+  lives = 3;
+  switchScreen(gameScreen);
+  showTask();
+  updateStatus();
+}
+
+function restartGame(){
+  startGame();
+}
+
+function switchScreen(screen){
+  [startScreen, gameScreen, endScreen].forEach(s => s.classList.remove("active"));
+  screen.classList.add("active");
+}
+
+function updateStatus(){
+  scoreBox.textContent = "Punkte: " + score;
+  starsBox.textContent = "Sterne: " + stars;
+  livesBox.textContent = "Herzen: " + "❤".repeat(lives) + "🖤".repeat(3 - lives);
+  const task = gameTasks[currentIndex];
+  if(task){
+    levelBox.textContent = "Level: " + task.level;
+  }
+  const percent = (currentIndex / gameTasks.length) * 100;
+  progressBar.style.width = percent + "%";
+}
+
+function showTask(){
+  if(currentIndex >= gameTasks.length || lives <= 0){
+    endGame();
+    return;
+  }
+
+  const task = gameTasks[currentIndex];
+  answered = false;
+  selectedOrder = [];
+  hintShown = false;
+
+  levelTag.textContent = "Level " + task.level;
+  taskType.textContent = task.taskLabel;
+  question.textContent = task.q;
+  feedback.textContent = "";
+  explain.textContent = "";
+  hintEl.textContent = task.hint || "";
+  hintEl.style.display = "none";
+  hintBtn.style.display = task.hint ? "inline-block" : "none";
+  hintBtn.textContent = "Hinweis anzeigen";
+
+  if(task.code){
+    codeBox.style.display = "block";
+    codeText.textContent = task.code;
+  } else {
+    codeBox.style.display = "none";
+    codeText.textContent = "";
+  }
+
+  answersEl.innerHTML = "";
+  orderArea.innerHTML = "";
+  orderContainer.style.display = "none";
+
+  if(task.type === "order"){
+    orderContainer.style.display = "block";
+    const mixed = shuffle(task.orderLines.map((line, index) => ({line, index})));
+    mixed.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "orderLine";
+      div.textContent = item.line;
+      div.onclick = () => selectOrderLine(item.index, item.line, div);
+      orderArea.appendChild(div);
+    });
+
+    const checkBtn = document.createElement("button");
+    checkBtn.className = "primary";
+    checkBtn.textContent = "Reihenfolge prüfen";
+    checkBtn.onclick = checkOrder;
+    answersEl.appendChild(checkBtn);
+  } else {
+    const order = shuffle([0,1,2,3]);
+    const shownCorrect = order.indexOf(task.correct);
+
+    order.forEach((origIndex, shownIndex) => {
+      const btn = document.createElement("button");
+      btn.className = "answerBtn";
+      btn.textContent = task.answers[origIndex];
+      btn.onclick = () => answerChoice(shownIndex, shownCorrect, btn, order);
+      answersEl.appendChild(btn);
+    });
+  }
+
+  updateStatus();
+}
+
+function answerChoice(shownIndex, shownCorrect, btn, order){
+  if(answered) return;
+  answered = true;
+
+  const buttons = [...answersEl.querySelectorAll(".answerBtn")];
+  buttons.forEach((b, i) => {
+    b.classList.add("disabled");
+    if(i === shownCorrect) b.classList.add("correct");
+  });
+
+  const task = gameTasks[currentIndex];
+  if(shownIndex === shownCorrect){
+    feedback.textContent = "Richtig!";
+    score += 10;
+    stars += 1;
+  } else {
+    btn.classList.add("wrong");
+    feedback.textContent = "Noch nicht richtig.";
+    lives -= 1;
+  }
+
+  explain.textContent = task.explain || "";
+  updateStatus();
+
+  if(lives <= 0){
+    endGame();
+  }
+}
+
+function selectOrderLine(index, line, element){
+  if(answered) return;
+  if(element.classList.contains("selected")) return;
+
+  element.classList.add("selected");
+  selectedOrder.push(index);
+}
+
+function checkOrder(){
+  if(answered) return;
+  const task = gameTasks[currentIndex];
+
+  if(selectedOrder.length !== task.correctOrder.length){
+    feedback.textContent = "Du musst alle Zeilen auswählen.";
+    return;
+  }
+
+  answered = true;
+  const correct = JSON.stringify(selectedOrder) === JSON.stringify(task.correctOrder);
+
+  if(correct){
+    feedback.textContent = "Richtig!";
+    score += 12;
+    stars += 1;
+  } else {
+    feedback.textContent = "Noch nicht richtig.";
+    lives -= 1;
+  }
+
+  explain.textContent = task.explain || "";
+  updateStatus();
+
+  if(lives <= 0){
+    endGame();
+  }
+}
+
+function toggleHint(){
+  if(hintEl.style.display === "block"){
+    hintEl.style.display = "none";
+    hintBtn.textContent = "Hinweis anzeigen";
+  } else {
+    hintEl.style.display = "block";
+    hintBtn.textContent = "Hinweis ausblenden";
+  }
+}
+
+function nextTask(){
+  if(!answered){
+    feedback.textContent = "Beantworte zuerst die Aufgabe.";
+    return;
+  }
+  currentIndex++;
+  showTask();
+}
+
+function endGame(){
+  switchScreen(endScreen);
+  progressBar.style.width = "100%";
+
+  let text = "";
+  if(lives <= 0){
+    text = "Deine Herzen sind aufgebraucht. Das ist nicht schlimm – bei Code lesen hilft Wiederholen sehr.";
+  } else {
+    text = "Du hast alle Aufgaben geschafft.";
+  }
+
+  document.getElementById("finalText").textContent = text;
+  document.getElementById("finalScore").textContent = "Punkte: " + score;
+  document.getElementById("finalStars").textContent = "Sterne: " + stars;
+}
+</script>
+</body>
+</html>
