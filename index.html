@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Roblox Code-Abenteuer – Lesen und Verstehen</title>
+<title>Roblox Code-Lernspiel</title>
 <style>
 * { box-sizing: border-box; font-family: system-ui, sans-serif; }
 
@@ -17,7 +17,7 @@ body{
 
 .app{
   width:100%;
-  max-width:980px;
+  max-width:1000px;
   background:white;
   border-radius:14px;
   box-shadow:0 6px 20px rgba(0,0,0,0.08);
@@ -42,17 +42,27 @@ body{
   font-size:14px;
 }
 
+.progressWrap{
+  background:rgba(255,255,255,0.25);
+  border-radius:999px;
+  height:12px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.progressBar{
+  height:100%;
+  width:0%;
+  background:#22c55e;
+  transition:width 0.25s;
+}
+
 .main{
   padding:16px;
 }
 
-.screen{
-  display:none;
-}
-
-.screen.active{
-  display:block;
-}
+.screen{ display:none; }
+.screen.active{ display:block; }
 
 .card{
   background:#f8fafc;
@@ -61,6 +71,8 @@ body{
   padding:14px;
   margin-bottom:14px;
 }
+
+.center{ text-align:center; }
 
 .levelTag{
   display:inline-block;
@@ -84,6 +96,11 @@ body{
   font-size:18px;
   font-weight:700;
   margin-bottom:10px;
+}
+
+.small{
+  font-size:13px;
+  color:#4b5563;
 }
 
 pre{
@@ -177,26 +194,6 @@ button{
   background:#f8fafc;
 }
 
-.progressWrap{
-  background:#e5e7eb;
-  border-radius:999px;
-  height:12px;
-  overflow:hidden;
-  margin-top:10px;
-}
-
-.progressBar{
-  height:100%;
-  width:0%;
-  background:#22c55e;
-  transition:width 0.25s;
-}
-
-.small{
-  font-size:13px;
-  color:#4b5563;
-}
-
 .hint{
   display:none;
   margin-top:10px;
@@ -207,14 +204,11 @@ button{
   font-size:14px;
 }
 
-.center{
-  text-align:center;
-}
-
 .badgeRow{
   display:flex;
   gap:8px;
   flex-wrap:wrap;
+  justify-content:center;
   margin-top:10px;
 }
 
@@ -226,10 +220,33 @@ button{
   font-weight:700;
 }
 
+.levelGrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+  margin-top:16px;
+}
+
+.levelCard{
+  background:white;
+  border:1px solid #dbe4ee;
+  border-radius:12px;
+  padding:14px;
+  text-align:left;
+}
+
+.levelCard h3{
+  margin:0 0 8px 0;
+}
+
+.orderContainer{
+  margin-top:10px;
+}
+
 .orderArea{
   display:grid;
   gap:8px;
-  margin-top:10px;
+  margin-top:8px;
 }
 
 .orderLine{
@@ -238,11 +255,30 @@ button{
   border-radius:10px;
   background:white;
   cursor:pointer;
+  user-select:none;
+}
+
+.orderLine:hover{
+  background:#f8fafc;
 }
 
 .orderLine.selected{
   background:#dbeafe;
   border-color:#60a5fa;
+}
+
+.orderNumber{
+  display:inline-block;
+  min-width:24px;
+  margin-right:8px;
+  font-weight:700;
+  color:#1d4ed8;
+}
+
+.selectedInfo{
+  margin-top:10px;
+  font-size:13px;
+  color:#4b5563;
 }
 
 .footerNote{
@@ -255,12 +291,12 @@ button{
 <body>
 <div class="app">
   <div class="topbar">
-    <h1>Roblox Code-Abenteuer</h1>
+    <h1>Code lesen lernen – Roblox / Luau</h1>
     <div class="status">
+      <div id="levelNameBox">Bereich: –</div>
+      <div id="masteredBox">Richtig gelöst: 0 / 30</div>
+      <div id="remainingBox">Noch offen: 30</div>
       <div id="scoreBox">Punkte: 0</div>
-      <div id="starsBox">Sterne: 0</div>
-      <div id="livesBox">Herzen: 3</div>
-      <div id="levelBox">Level: 1</div>
     </div>
     <div class="progressWrap">
       <div class="progressBar" id="progressBar"></div>
@@ -271,63 +307,79 @@ button{
     <div class="screen active" id="startScreen">
       <div class="card center">
         <div class="levelTag">Lernspiel</div>
-        <div class="question">Lies kleine Luau-/Roblox-Code-Stücke und finde heraus, was sie bedeuten.</div>
+        <div class="question">Wähle einen Bereich.</div>
         <p class="small">
-          Das Spiel mischt mehrere Aufgabentypen. Es geht nicht um schweres Programmieren,
-          sondern um Verstehen: Was macht der Code? In welcher Reihenfolge passiert etwas?
-          Welche Zeile fehlt?
+          Ein Bereich ist erst fertig, wenn alle 30 Aufgaben einmal richtig gelöst wurden.
+          Falsche Aufgaben kommen später wieder. So wird wirklich geübt und nicht nur geraten.
         </p>
-        <div class="badgeRow" style="justify-content:center;">
-          <div class="badge">kleine Schritte</div>
-          <div class="badge">Hinweise</div>
-          <div class="badge">sofortige Rückmeldung</div>
-          <div class="badge">ohne Zeitdruck</div>
-        </div>
-        <div class="controls" style="justify-content:center; margin-top:16px;">
-          <button class="primary" onclick="startGame()">Spiel starten</button>
+
+        <div class="levelGrid">
+          <div class="levelCard">
+            <h3>Leicht</h3>
+            <p class="small">print, Variablen, einfache if-Abfragen, Reihenfolge, kleine Lücken.</p>
+            <button class="primary" onclick="startLevel('leicht')">Leicht starten</button>
+          </div>
+
+          <div class="levelCard">
+            <h3>Mittel</h3>
+            <p class="small">Schleifen, Funktionen, repeat-until, while, Text verbinden, mehrere Schritte.</p>
+            <button class="primary" onclick="startLevel('mittel')">Mittel starten</button>
+          </div>
+
+          <div class="levelCard">
+            <h3>Roblox</h3>
+            <p class="small">Part, Transparency, Anchored, CanCollide, Touched, Position, Farbe.</p>
+            <button class="primary" onclick="startLevel('roblox')">Roblox starten</button>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="screen" id="gameScreen">
       <div class="card">
-        <div class="levelTag" id="levelTag">Level 1</div>
+        <div class="levelTag" id="levelTag">Bereich</div>
         <div class="taskType" id="taskType"></div>
         <div class="question" id="question"></div>
+
         <pre id="codeBox" style="display:none;"><code id="codeText"></code></pre>
 
-        <div id="orderContainer" style="display:none;">
-          <div class="small">Klicke die Zeilen in der richtigen Reihenfolge an:</div>
+        <div class="orderContainer" id="orderContainer" style="display:none;">
+          <div class="small">Klicke die Zeilen in der richtigen Reihenfolge an. Durch erneutes Anklicken kannst du sie wieder abwählen.</div>
           <div class="orderArea" id="orderArea"></div>
+          <div class="selectedInfo" id="selectedInfo">Ausgewählt: –</div>
         </div>
 
         <div class="answers" id="answers"></div>
 
         <div class="controls">
           <button class="secondary" id="hintBtn" onclick="toggleHint()">Hinweis anzeigen</button>
+          <button class="secondary" id="clearOrderBtn" style="display:none;" onclick="clearOrderSelection()">Auswahl löschen</button>
           <button class="primary" onclick="nextTask()">Nächste Aufgabe</button>
+          <button class="secondary" onclick="backToMenu()">Zurück zum Menü</button>
         </div>
 
         <div class="hint" id="hint"></div>
         <div class="feedback" id="feedback"></div>
         <div class="explain" id="explain"></div>
       </div>
+
       <div class="footerNote">
-        Tipp: Erst Zeile für Zeile lesen. Nicht alles auf einmal.
+        Tipp: Lies den Code immer von oben nach unten. Frage dich: Was wird gespeichert? Was wird geprüft? Was wird ausgegeben?
       </div>
     </div>
 
     <div class="screen" id="endScreen">
       <div class="card center">
-        <div class="levelTag">Runde fertig</div>
-        <div class="question">Gut gemacht. Hier ist dein Ergebnis:</div>
+        <div class="levelTag">Bereich geschafft</div>
+        <div class="question" id="endTitle">Super!</div>
         <p id="finalText"></p>
-        <div class="badgeRow" style="justify-content:center;">
+        <div class="badgeRow">
           <div class="badge" id="finalScore"></div>
-          <div class="badge" id="finalStars"></div>
+          <div class="badge" id="finalSolved"></div>
         </div>
-        <div class="controls" style="justify-content:center; margin-top:16px;">
-          <button class="primary" onclick="restartGame()">Neu starten</button>
+        <div class="controls" style="justify-content:center;">
+          <button class="primary" onclick="restartCurrentLevel()">Noch einmal spielen</button>
+          <button class="secondary" onclick="backToMenu()">Zum Menü</button>
         </div>
       </div>
     </div>
@@ -335,392 +387,576 @@ button{
 </div>
 
 <script>
-const tasks = [
-  {
-    level:1,
-    type:"story",
-    taskLabel:"Aufgabentyp: Was passiert hier?",
-    q:"Welche Geschichte passt zu diesem Code?",
-    code:'print("Hallo")',
-    answers:[
-      'Im Output erscheint "Hallo".',
-      'Ein Part wird erstellt.',
-      'Der Spieler springt.',
-      'Es passiert nichts.'
-    ],
-    correct:0,
-    hint:"print schreibt Text in den Output.",
-    explain:'Der Code gibt einfach den Text "Hallo" aus.'
-  },
-  {
-    level:1,
-    type:"output",
-    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
-    q:"Was wird im Output angezeigt?",
-    code:'local name = "Mia"\nprint(name)',
-    answers:[
-      'Mia',
-      'name',
-      'Hallo Mia',
-      'gar nichts'
-    ],
-    correct:0,
-    hint:"Die Variable speichert den Text Mia.",
-    explain:"name enthält Mia. print(name) gibt also Mia aus."
-  },
-  {
-    level:1,
-    type:"story",
-    taskLabel:"Aufgabentyp: Was passiert hier?",
-    q:"Welche Beschreibung passt?",
-    code:"local coins = 2\ncoins = coins + 1\nprint(coins)",
-    answers:[
-      'Es wird 3 ausgegeben.',
-      'Es wird 2 ausgegeben.',
-      'Es wird 1 ausgegeben.',
-      'coins wird gelöscht.'
-    ],
-    correct:0,
-    hint:"coins wird um 1 größer.",
-    explain:"2 plus 1 ergibt 3."
-  },
-  {
-    level:1,
-    type:"condition",
-    taskLabel:"Aufgabentyp: Welche Bedingung passt?",
-    q:"Welche Aussage ist richtig?",
-    code:'local offen = true\nif offen then\n  print("Tür auf")\nend',
-    answers:[
-      'Weil offen wahr ist, wird "Tür auf" ausgegeben.',
-      'Weil offen wahr ist, wird nichts ausgegeben.',
-      'offen wird automatisch false.',
-      'Der Code ist unvollständig.'
-    ],
-    correct:0,
-    hint:"if läuft nur, wenn die Bedingung wahr ist.",
-    explain:'offen ist true. Darum läuft der Code im if-Block.'
-  },
-  {
-    level:1,
-    type:"missing",
-    taskLabel:"Aufgabentyp: Welche Zeile fehlt?",
-    q:"Welche Zeile fehlt, damit von 1 bis 3 gezählt wird?",
-    code:"local i = 1\nwhile i <= 3 do\n  print(i)\n  ?\nend",
-    answers:[
-      "i = i + 1",
-      "print(i)",
-      "local i = 0",
-      "i == i + 1"
-    ],
-    correct:0,
-    hint:"Die Zahl muss größer werden.",
-    explain:"Ohne i = i + 1 würde die Schleife nie fertig werden."
-  },
-  {
-    level:1,
-    type:"output",
-    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
-    q:"Was wird ausgegeben?",
-    code:'for i = 1, 3 do\n  print("Hi")\nend',
-    answers:[
-      'Hi drei Mal',
-      'Hi ein Mal',
-      '1, 2, 3',
-      'gar nichts'
-    ],
-    correct:0,
-    hint:"Die Schleife läuft 3-mal.",
-    explain:'Der Text "Hi" wird in jedem Durchgang ausgegeben.'
-  },
-  {
-    level:2,
-    type:"story",
-    taskLabel:"Aufgabentyp: Was passiert hier?",
-    q:"Welche Geschichte passt?",
-    code:'local farbe = "rot"\nif farbe == "rot" then\n  print("Stop")\nend',
-    answers:[
-      'Stop wird ausgegeben.',
-      'farbe wird zu Stop.',
-      'Es wird nichts ausgegeben.',
-      'rot wird gelöscht.'
-    ],
-    correct:0,
-    hint:"Die Texte sind gleich.",
-    explain:'Weil farbe genau "rot" ist, ist die Bedingung wahr.'
-  },
-  {
-    level:2,
-    type:"story",
-    taskLabel:"Aufgabentyp: Was passiert hier?",
-    q:"Was beschreibt den Code am besten?",
-    code:'workspace.Part.Transparency = 1',
-    answers:[
-      'Der Part wird unsichtbar.',
-      'Der Part wird größer.',
-      'Der Part wird rot.',
-      'Der Part springt.'
-    ],
-    correct:0,
-    hint:"Transparency bedeutet Durchsichtigkeit.",
-    explain:"1 bedeutet ganz durchsichtig."
-  },
-  {
-    level:2,
-    type:"output",
-    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
-    q:"Was erscheint im Output?",
-    code:"for i = 2, 4 do\n  print(i)\nend",
-    answers:[
-      '2, dann 3, dann 4',
-      '1, dann 2, dann 3',
-      'nur 4',
-      'gar nichts'
-    ],
-    correct:0,
-    hint:"Die Schleife startet bei 2 und endet bei 4.",
-    explain:"i nimmt die Werte 2, 3 und 4 an."
-  },
-  {
-    level:2,
-    type:"condition",
-    taskLabel:"Aufgabentyp: Welche Bedingung passt?",
-    q:"Welche Aussage passt zu diesem Code?",
-    code:'local lichtAn = false\nif not lichtAn then\n  print("dunkel")\nend',
-    answers:[
-      'dunkel wird ausgegeben.',
-      'Es wird nichts ausgegeben.',
-      'lichtAn wird true.',
-      'Es wird hell ausgegeben.'
-    ],
-    correct:0,
-    hint:"not false wird zu true.",
-    explain:"Da lichtAn false ist, ist not lichtAn wahr."
-  },
-  {
-    level:2,
-    type:"missing",
-    taskLabel:"Aufgabentyp: Welche Zeile fehlt?",
-    q:"Welche Zeile fehlt, damit die Tür geschlossen bleibt, wenn kein Schlüssel da ist?",
-    code:'local hatSchluessel = false\nif hatSchluessel then\n  print("Tür auf")\nelse\n  ?\nend',
-    answers:[
-      'print("Tür zu")',
-      'print("Tür auf")',
-      'hatSchluessel = true',
-      'end'
-    ],
-    correct:0,
-    hint:"Im else-Teil passiert das Gegenteil.",
-    explain:'Wenn kein Schlüssel da ist, passt "Tür zu".'
-  },
-  {
-    level:2,
-    type:"order",
-    taskLabel:"Aufgabentyp: Welche Reihenfolge ist richtig?",
-    q:"In welcher Reihenfolge läuft dieser Code ab?",
-    code:"",
-    orderLines:[
-      'print("Start")',
-      'wait(1)',
-      'print("Ende")'
-    ],
-    correctOrder:[0,1,2],
-    hint:"Der Code wird von oben nach unten gelesen.",
-    explain:"Zuerst kommt Start, dann eine Pause, dann Ende."
-  },
-  {
-    level:3,
-    type:"story",
-    taskLabel:"Aufgabentyp: Was passiert hier?",
-    q:"Welche Beschreibung passt?",
-    code:'workspace.Part.Touched:Connect(function()\n  print("berührt")\nend)',
-    answers:[
-      'Wenn etwas den Part berührt, erscheint "berührt".',
-      'Beim Start erscheint sofort "berührt".',
-      'Der Part berührt sich selbst.',
-      'Es passiert nie etwas.'
-    ],
-    correct:0,
-    hint:"Touched reagiert auf Berührung.",
-    explain:"Der Code wird erst bei einer Berührung ausgeführt."
-  },
-  {
-    level:3,
-    type:"output",
-    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
-    q:"Was wird hier ausgegeben?",
-    code:'local x = "rot"\nprint(x)\nx = "blau"\nprint(x)',
-    answers:[
-      'erst rot, dann blau',
-      'erst blau, dann rot',
-      'nur blau',
-      'nur rot'
-    ],
-    correct:0,
-    hint:"Die Variable ändert ihren Wert.",
-    explain:"Am Anfang steht rot drin, später blau."
-  },
-  {
-    level:3,
-    type:"story",
-    taskLabel:"Aufgabentyp: Was passiert hier?",
-    q:"Welche Geschichte passt?",
-    code:"local energie = 2\nwhile energie > 0 do\n  print(\"arbeiten\")\n  energie = energie - 1\nend\nprint(\"fertig\")",
-    answers:[
-      'arbeiten erscheint zwei Mal, danach fertig.',
-      'fertig erscheint zuerst.',
-      'arbeiten erscheint unendlich oft.',
-      'nur fertig erscheint.'
-    ],
-    correct:0,
-    hint:"energie wird kleiner.",
-    explain:"Bei 2 und 1 läuft die Schleife, danach kommt fertig."
-  },
-  {
-    level:3,
-    type:"missing",
-    taskLabel:"Aufgabentyp: Welche Zeile fehlt?",
-    q:"Welche Zeile fehlt, damit eine Funktion wirklich benutzt wird?",
-    code:'local function SagHallo()\n  print("Hallo")\nend\n?',
-    answers:[
-      "SagHallo()",
-      'print("SagHallo")',
-      'local function Hallo()',
-      'end'
-    ],
-    correct:0,
-    hint:"Eine Funktion muss aufgerufen werden.",
-    explain:"Mit SagHallo() wird die Funktion gestartet."
-  },
-  {
-    level:3,
-    type:"condition",
-    taskLabel:"Aufgabentyp: Welche Bedingung passt?",
-    q:"Welche Aussage stimmt?",
-    code:'local leben = 0\nif leben == 0 then\n  print("Game Over")\nend',
-    answers:[
-      'Game Over wird ausgegeben, weil leben 0 ist.',
-      'Es wird nichts ausgegeben.',
-      'leben wird zu 1.',
-      'Game Over wird nur bei leben 1 ausgegeben.'
-    ],
-    correct:0,
-    hint:"== vergleicht Werte.",
-    explain:"leben ist 0. Deshalb ist die Bedingung wahr."
-  },
-  {
-    level:3,
-    type:"order",
-    taskLabel:"Aufgabentyp: Welche Reihenfolge ist richtig?",
-    q:"Ordne die Zeilen so, dass zuerst gezählt und dann ausgegeben wird.",
-    code:"",
-    orderLines:[
-      "local coins = 1",
-      "coins = coins + 1",
-      "print(coins)"
-    ],
-    correctOrder:[0,1,2],
-    hint:"Erst Variable anlegen, dann ändern, dann ausgeben.",
-    explain:"Nur in dieser Reihenfolge entsteht das richtige Ergebnis."
-  },
-  {
-    level:4,
-    type:"story",
-    taskLabel:"Aufgabentyp: Was passiert hier?",
-    q:"Welche Beschreibung passt?",
-    code:'local function ZeigText()\n  print("Test")\nend\nZeigText()\nZeigText()',
-    answers:[
-      'Test wird zwei Mal ausgegeben.',
-      'Test wird ein Mal ausgegeben.',
-      'Es passiert nichts.',
-      'Es gibt einen Fehler.'
-    ],
-    correct:0,
-    hint:"Die Funktion wird zweimal aufgerufen.",
-    explain:"Jeder Aufruf führt den Inhalt der Funktion erneut aus."
-  },
-  {
-    level:4,
-    type:"output",
-    taskLabel:"Aufgabentyp: Was wird ausgegeben?",
-    q:"Was wird ausgegeben?",
-    code:'local name = "Alex"\nprint("Hallo " .. name)',
-    answers:[
-      'Hallo Alex',
-      'Hallo name',
-      'Alex Hallo',
-      'gar nichts'
-    ],
-    correct:0,
-    hint:".. verbindet Texte.",
-    explain:'Der Text "Hallo " wird mit dem Namen verbunden.'
-  },
-  {
-    level:4,
-    type:"story",
-    taskLabel:"Aufgabentyp: Was passiert hier?",
-    q:"Welche Geschichte passt?",
-    code:'workspace.Part.CanCollide = false',
-    answers:[
-      'Man kann wahrscheinlich durch den Part durchgehen.',
-      'Der Part wird unsichtbar.',
-      'Der Part wird verankert.',
-      'Der Part wird gelöscht.'
-    ],
-    correct:0,
-    hint:"CanCollide betrifft Zusammenstoßen.",
-    explain:"Wenn Kollision aus ist, kann man oft hindurchgehen."
-  },
-  {
-    level:4,
-    type:"condition",
-    taskLabel:"Aufgabentyp: Welche Bedingung passt?",
-    q:"Welche Aussage stimmt?",
-    code:'local sichtbar = false\nworkspace.Part.Transparency = 0\nif sichtbar == false then\n  workspace.Part.Transparency = 1\nend',
-    answers:[
-      'Der Part wird unsichtbar.',
-      'Der Part bleibt sichtbar.',
-      'Der Part wird größer.',
-      'Es passiert gar nichts.'
-    ],
-    correct:0,
-    hint:"Die Bedingung ist wahr.",
-    explain:"Weil sichtbar false ist, wird Transparency auf 1 gesetzt."
-  },
-  {
-    level:4,
-    type:"order",
-    taskLabel:"Aufgabentyp: Welche Reihenfolge ist richtig?",
-    q:"Ordne die Zeilen für eine kleine if-Abfrage.",
-    code:"",
-    orderLines:[
-      'local offen = true',
-      'if offen then',
-      'print("Tür auf")',
-      'end'
-    ],
-    correctOrder:[0,1,2,3],
-    hint:"Erst Variable, dann if, dann Inhalt, dann end.",
-    explain:"So ist ein einfacher if-Block aufgebaut."
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
-];
+  return a;
+}
 
-let gameTasks = [];
-let currentIndex = 0;
+function mc(taskLabel, q, code, answers, correct, hint, explain){
+  return {
+    mode: "mc",
+    taskLabel, q, code, answers, correct, hint, explain
+  };
+}
+
+function orderTask(taskLabel, q, lines, hint, explain){
+  return {
+    mode: "order",
+    taskLabel, q, code: "",
+    lines, hint, explain
+  };
+}
+
+function buildLeicht(){
+  return [
+    mc("Was passiert hier?", 'Welche Geschichte passt?', 'print("Hallo")',
+      ['Im Output erscheint Hallo.','Ein Part wird erstellt.','Der Spieler springt.','Es passiert nichts.'], 0,
+      'print schreibt Text in den Output.',
+      'Der Befehl print zeigt Text im Output an.'
+    ),
+    mc("Was wird ausgegeben?", 'Was wird angezeigt?', 'local name = "Mia"\nprint(name)',
+      ['Mia','name','Hallo Mia','gar nichts'], 0,
+      'Die Variable name speichert den Text Mia.',
+      'print(name) gibt den Inhalt der Variable aus.'
+    ),
+    mc("Was wird ausgegeben?", 'Was erscheint?', 'local punkte = 5\nprint(punkte)',
+      ['5','punkte','0','gar nichts'], 0,
+      'Die Zahl wird gespeichert und ausgegeben.',
+      'punkte hat den Wert 5.'
+    ),
+    mc("Was passiert hier?", 'Welche Beschreibung passt?', 'local x = 2 + 3\nprint(x)',
+      ['Es wird 5 ausgegeben.','Es wird 2 ausgegeben.','Es wird 3 ausgegeben.','Es passiert nichts.'], 0,
+      '2 + 3 ergibt 5.',
+      'Die Rechnung wird zuerst berechnet.'
+    ),
+    mc("Was passiert hier?", 'Welche Geschichte passt?', 'local text = "Start"\nprint(text)',
+      ['Start wird ausgegeben.','Das Spiel startet automatisch.','Ein Button erscheint.','Der Text wird gelöscht.'], 0,
+      '"Start" ist hier nur ein Text.',
+      'Der String wird gespeichert und danach ausgegeben.'
+    ),
+    mc("Welche Bedingung passt?", 'Welche Aussage stimmt?', 'local offen = true\nif offen then\n  print("Tür auf")\nend',
+      ['Weil offen wahr ist, wird Tür auf ausgegeben.','Es wird nichts ausgegeben.','offen wird false.','Der Code ist falsch.'], 0,
+      'if läuft nur bei true.',
+      'Die Bedingung ist wahr, also läuft der Code im if-Block.'
+    ),
+    mc("Welche Bedingung passt?", 'Welche Aussage stimmt?', 'local offen = false\nif offen then\n  print("Tür auf")\nend',
+      ['Es wird nichts ausgegeben.','Tür auf wird ausgegeben.','offen wird true.','Die Tür geht wirklich auf.'], 0,
+      'false bedeutet: der if-Teil läuft nicht.',
+      'Weil offen false ist, wird der print-Befehl nicht ausgeführt.'
+    ),
+    mc("if-else lesen", 'Was passiert hier?', 'local hatSchluessel = false\nif hatSchluessel then\n  print("auf")\nelse\n  print("zu")\nend',
+      ['zu wird ausgegeben.','auf wird ausgegeben.','beides wird ausgegeben.','gar nichts'], 0,
+      'false führt zum else-Teil.',
+      'Weil hatSchluessel false ist, läuft der else-Zweig.'
+    ),
+    mc("Was wird ausgegeben?", 'Was erscheint?', 'print("A")\nprint("B")',
+      ['Erst A, dann B.','Nur B.','Nur A.','Ein Fehler.'], 0,
+      'Der Code läuft von oben nach unten.',
+      'Zuerst wird A, dann B ausgegeben.'
+    ),
+    mc("Reihenfolge verstehen", 'Welche Geschichte passt?', 'local farbe = "rot"\nprint(farbe)\nfarbe = "blau"\nprint(farbe)',
+      ['Erst rot, dann blau.','Erst blau, dann rot.','Nur blau.','Nur rot.'], 0,
+      'Die Variable ändert ihren Wert.',
+      'Zuerst enthält farbe den Wert rot, danach blau.'
+    ),
+
+    mc("Welche Zeile fehlt?", 'Welche Zeile fehlt?', 'local coins = 1\n?\nprint(coins)',
+      ['coins = coins + 1','print("coins")','local coins = 0','coins == coins + 1'], 0,
+      'coins soll größer werden.',
+      'Mit coins = coins + 1 wird aus 1 die Zahl 2.'
+    ),
+    mc("Welche Zeile fehlt?", 'Welche Zeile passt in den else-Teil?', 'local hatTicket = false\nif hatTicket then\n  print("rein")\nelse\n  ?\nend',
+      ['print("kein Eintritt")','print("rein")','hatTicket = true','end'], 0,
+      'Im else-Teil passiert das Gegenteil.',
+      'Wenn kein Ticket da ist, passt kein Eintritt.'
+    ),
+    mc("Was passiert hier?", 'Welche Geschichte passt?', 'local lichtAn = true\nif lichtAn then\n  print("hell")\nend',
+      ['hell wird ausgegeben.','dunkel wird ausgegeben.','gar nichts','Der Code stoppt.'], 0,
+      'true bedeutet wahr.',
+      'Weil lichtAn true ist, läuft der if-Teil.'
+    ),
+    mc("Was passiert hier?", 'Welche Geschichte passt?', 'local leben = 0\nif leben == 0 then\n  print("Game Over")\nend',
+      ['Game Over wird ausgegeben.','leben wird 1.','Es passiert nichts.','Der Spieler bekommt Leben.'], 0,
+      '== vergleicht Werte.',
+      'leben ist 0, also ist die Bedingung wahr.'
+    ),
+    mc("Was wird ausgegeben?", 'Was erscheint im Output?', 'local x = 7\nprint(x)',
+      ['7','x','0','gar nichts'], 0,
+      'Die Variable speichert 7.',
+      'print(x) gibt den gespeicherten Wert aus.'
+    ),
+    mc("Was passiert hier?", 'Welche Beschreibung passt?', 'local zahl = 4\nzahl = zahl - 1\nprint(zahl)',
+      ['Es wird 3 ausgegeben.','Es wird 4 ausgegeben.','Es wird 5 ausgegeben.','Es gibt einen Fehler.'], 0,
+      '1 wird abgezogen.',
+      '4 minus 1 ergibt 3.'
+    ),
+    mc("Welche Bedingung passt?", 'Welche Aussage stimmt?', 'local farbe = "rot"\nif farbe == "rot" then\n  print("stop")\nend',
+      ['stop wird ausgegeben.','farbe wird stop.','Es passiert nichts.','rot wird gelöscht.'], 0,
+      'Die Texte sind gleich.',
+      'farbe ist rot, also ist die Bedingung wahr.'
+    ),
+    mc("Welche Bedingung passt?", 'Welche Aussage stimmt?', 'local farbe = "blau"\nif farbe == "rot" then\n  print("stop")\nend',
+      ['Es wird nichts ausgegeben.','stop wird ausgegeben.','farbe wird rot.','Es gibt immer einen Fehler.'], 0,
+      'blau ist nicht rot.',
+      'Die Bedingung ist falsch.'
+    ),
+    mc("Text verbinden", 'Was wird ausgegeben?', 'local name = "Alex"\nprint("Hallo " .. name)',
+      ['Hallo Alex','Hallo name','Alex Hallo','gar nichts'], 0,
+      '.. verbindet Texte.',
+      'Der Text Hallo wird mit dem Namen verbunden.'
+    ),
+    mc("Was passiert hier?", 'Welche Beschreibung passt?', 'local temperatur = 30\nif temperatur > 25 then\n  print("heiß")\nelse\n  print("kalt")\nend',
+      ['heiß wird ausgegeben.','kalt wird ausgegeben.','beides','gar nichts'], 0,
+      '30 ist größer als 25.',
+      'Die Bedingung ist wahr, also läuft der if-Teil.'
+    ),
+
+    orderTask("Reihenfolge", 'Bringe die Zeilen in die richtige Reihenfolge.',
+      ['local x = 3', 'print(x)'],
+      'Erst speichern, dann ausgeben.',
+      'Zuerst braucht man die Variable, dann kann man sie ausgeben.'
+    ),
+    orderTask("Reihenfolge", 'Bringe die if-Abfrage in die richtige Reihenfolge.',
+      ['local offen = true', 'if offen then', 'print("Tür auf")', 'end'],
+      'Erst Variable, dann if, dann Inhalt, dann end.',
+      'So ist ein einfacher if-Block aufgebaut.'
+    ),
+    orderTask("Reihenfolge", 'Ordne diese Zeilen.',
+      ['local coins = 1', 'coins = coins + 1', 'print(coins)'],
+      'Erst anlegen, dann verändern, dann ausgeben.',
+      'Nur so kommt die richtige Reihenfolge zustande.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen.',
+      ['print("Start")', 'print("Ende")'],
+      'Der Code läuft von oben nach unten.',
+      'Zuerst kommt Start, dann Ende.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen so, dass erst geprüft und dann ausgegeben wird.',
+      ['local lichtAn = true', 'if lichtAn then', 'print("hell")', 'end'],
+      'Die Bedingung muss vor dem Inhalt stehen.',
+      'Ohne if und end passt der Aufbau nicht.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['local name = "Mia"', 'print("Hallo " .. name)'],
+      'Erst Wert speichern, dann benutzen.',
+      'Der Name muss zuerst da sein.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['local leben = 0', 'if leben == 0 then', 'print("Game Over")', 'end'],
+      'Erst Variable, dann Vergleich, dann Ausgabe.',
+      'Die Prüfung kommt vor dem Code im if-Block.'
+    ),
+    orderTask("Reihenfolge", 'Ordne diese Zeilen.',
+      ['local farbe = "rot"', 'print(farbe)', 'farbe = "blau"', 'print(farbe)'],
+      'Erst wird rot ausgegeben, später blau.',
+      'Die Variable wird erst benutzt, dann verändert, dann wieder benutzt.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen.',
+      ['local hatSchluessel = false', 'if hatSchluessel then', 'print("auf")', 'else', 'print("zu")', 'end'],
+      'if-else braucht am Ende end.',
+      'So ist der normale Aufbau einer if-else-Abfrage.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['local text = "Start"', 'print(text)'],
+      'Erst speichern, dann ausgeben.',
+      'Die Variable text muss zuerst gesetzt werden.')
+  ];
+}
+
+function buildMittel(){
+  return [
+    mc("Schleifen lesen", 'Welche Geschichte passt?', 'for i = 1, 3 do\n  print("Hi")\nend',
+      ['Hi erscheint drei Mal.','Hi erscheint einmal.','1,2,3 wird ausgegeben.','Es läuft unendlich.'], 0,
+      'Die Schleife läuft für 1, 2 und 3.',
+      'Der Inhalt der Schleife wird drei Mal ausgeführt.'
+    ),
+    mc("Schleifen lesen", 'Was wird ausgegeben?', 'for i = 1, 3 do\n  print(i)\nend',
+      ['1, dann 2, dann 3','nur 3','0,1,2','gar nichts'], 0,
+      'i zählt mit.',
+      'Die Schleife zählt von 1 bis 3.'
+    ),
+    mc("Schleifen lesen", 'Was passiert hier?', 'for i = 1, 5, 2 do\n  print(i)\nend',
+      ['1, 3, 5','1,2,3,4,5','2,4','unendlich'], 0,
+      'Die Schrittweite ist 2.',
+      'i springt immer um 2 weiter.'
+    ),
+    mc("while lesen", 'Welche Geschichte passt?', 'local i = 1\nwhile i <= 3 do\n  print(i)\n  i = i + 1\nend',
+      ['Es werden 1, 2, 3 ausgegeben und dann stoppt es.','Es läuft unendlich.','Nur 1 wird ausgegeben.','gar nichts'], 0,
+      'i wird immer größer.',
+      'Sobald i = 4 ist, endet die Schleife.'
+    ),
+    mc("while lesen", 'Was passiert hier?', 'local x = 2\nwhile x > 0 do\n  print("go")\n  x = x - 1\nend',
+      ['go wird zwei Mal ausgegeben.','go wird unendlich oft ausgegeben.','go wird nie ausgegeben.','x wird angezeigt.'], 0,
+      'x startet bei 2 und wird kleiner.',
+      'Bei x = 2 und x = 1 läuft die Schleife.'
+    ),
+    mc("Typischer Fehler", 'Welche Aussage stimmt?', 'local i = 1\nwhile i <= 3 do\n  print(i)\nend',
+      ['Die Schleife läuft unendlich, weil i nie verändert wird.','Es werden 1,2,3 ausgegeben.','Es passiert nichts.','Roblox repariert das automatisch.'], 0,
+      'i bleibt immer 1.',
+      'Ohne i = i + 1 bleibt die Bedingung dauerhaft wahr.'
+    ),
+    mc("repeat-until", 'Was passiert hier?', 'repeat\n  print("Start")\nuntil true',
+      ['Start wird genau einmal ausgegeben.','Start wird nie ausgegeben.','Start wird unendlich oft ausgegeben.','Es gibt einen Fehler.'], 0,
+      'repeat läuft mindestens einmal.',
+      'Erst wird der Code ausgeführt, danach geprüft.'
+    ),
+    mc("repeat-until", 'Was wird ausgegeben?', 'local x = 1\nrepeat\n  print(x)\n  x = x + 1\nuntil x == 4',
+      ['1, 2, 3','1,2,3,4','nur 4','gar nichts'], 0,
+      'Es stoppt, wenn x 4 geworden ist.',
+      'Gedruckt wird bei x = 1, 2 und 3.'
+    ),
+    mc("Funktionen", 'Welche Geschichte passt?', 'local function SagHallo()\n  print("Hallo")\nend\nSagHallo()',
+      ['Die Funktion wird aufgerufen und Hallo wird ausgegeben.','Die Funktion wird nur gespeichert.','Ein Part wird erstellt.','Es passiert nichts.'], 0,
+      'Unten steht der Aufruf.',
+      'Die Funktion wird definiert und danach benutzt.'
+    ),
+    mc("Funktionen", 'Was passiert hier?', 'local function Springen()\n  print("Jump")\nend',
+      ['Die Funktion wird nur vorbereitet, aber noch nicht ausgeführt.','Jump wird sofort ausgegeben.','Ein echter Sprung passiert.','Der Code ist falsch.'], 0,
+      'Eine Funktion läuft erst beim Aufruf.',
+      'Hier wird nur die Funktion angelegt.'
+    ),
+
+    mc("Funktionen", 'Welche Geschichte passt?', 'local function ZeigText()\n  print("Test")\nend\nZeigText()\nZeigText()',
+      ['Test wird zwei Mal ausgegeben.','Test wird einmal ausgegeben.','Es gibt einen Fehler.','Es passiert nichts.'], 0,
+      'Die Funktion wird zweimal aufgerufen.',
+      'Jeder Aufruf führt den Inhalt erneut aus.'
+    ),
+    mc("Wartezeiten", 'Was beschreibt den Code?', 'print("Start")\nwait(1)\nprint("Ende")',
+      ['Erst Start, dann nach einer Pause Ende.','Beides gleichzeitig.','Nur Ende.','Der Code stoppt für immer.'], 0,
+      'wait macht eine Pause.',
+      'Zwischen beiden Ausgaben liegt eine kurze Wartezeit.'
+    ),
+    mc("Wartezeiten", 'Was passiert hier?', 'for i = 1, 3 do\n  print("Blink")\n  wait(0.5)\nend',
+      ['Blink erscheint drei Mal mit kleinen Pausen.','Blink erscheint unendlich oft.','Blink erscheint einmal.','gar nichts'], 0,
+      'Die Schleife läuft drei Mal.',
+      'Jeder Durchgang zeigt Blink und wartet kurz.'
+    ),
+    mc("Text verbinden", 'Was wird ausgegeben?', 'local status = "offen"\nprint("Die Tür ist " .. status)',
+      ['Die Tür ist offen','offen','Die Tür ist status','gar nichts'], 0,
+      '.. verbindet Texte.',
+      'Der feste Text wird mit dem Variablenwert verbunden.'
+    ),
+    mc("Mehrere Schritte", 'Welche Geschichte passt?', 'local level = 2\nlevel = level + 3\nprint("Level: " .. level)',
+      ['Am Ende wird Level: 5 ausgegeben.','Am Ende wird Level: 2 ausgegeben.','Es wird ein neues Spiellevel gebaut.','Es gibt einen Fehler.'], 0,
+      '2 + 3 = 5.',
+      'level wird erhöht und dann mit Text ausgegeben.'
+    ),
+    mc("if-else lesen", 'Was passiert hier?', 'local fertig = false\nif fertig then\n  print("Ende")\nelse\n  print("Noch nicht")\nend',
+      ['Noch nicht wird ausgegeben.','Ende wird ausgegeben.','beides','gar nichts'], 0,
+      'fertig ist false.',
+      'Darum läuft der else-Teil.'
+    ),
+    mc("Text und Zahlen", 'Was wird ausgegeben?', 'local count = 1\nfor i = 1, 3 do\n  count = count + 1\nend\nprint(count)',
+      ['4','3','1','0'], 0,
+      'count startet bei 1 und wird drei Mal erhöht.',
+      '1 wird dreimal um 1 größer: 2, 3, 4.'
+    ),
+    mc("while lesen", 'Welche Geschichte passt?', 'local energie = 3\nwhile energie > 0 do\n  print("arbeiten")\n  energie = energie - 1\nend\nprint("fertig")',
+      ['arbeiten erscheint drei Mal, danach fertig.','fertig erscheint zuerst.','arbeiten erscheint unendlich oft.','nur fertig'], 0,
+      'Erst die Schleife, dann die letzte Zeile.',
+      'Bei 3, 2 und 1 läuft die Schleife.'
+    ),
+    mc("Welche Zeile fehlt?", 'Welche Zeile fehlt, damit die Funktion benutzt wird?', 'local function Zeig()\n  print("Hallo")\nend\n?',
+      ['Zeig()','print("Zeig")','local function Hallo()','end'], 0,
+      'Eine Funktion muss aufgerufen werden.',
+      'Mit Zeig() wird die Funktion gestartet.'
+    ),
+    mc("Welche Zeile fehlt?", 'Welche Zeile fehlt, damit die while-Schleife endet?', 'local i = 1\nwhile i <= 3 do\n  print(i)\n  ?\nend',
+      ['i = i + 1','print(i)','local i = 0','i == i + 1'], 0,
+      'i muss größer werden.',
+      'Nur so wird die Bedingung irgendwann falsch.'
+    ),
+
+    orderTask("Reihenfolge", 'Ordne die Zeilen einer for-Schleife richtig.',
+      ['for i = 1, 3 do', 'print(i)', 'end'],
+      'Eine Schleife braucht am Ende end.',
+      'So ist eine einfache for-Schleife aufgebaut.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen einer while-Schleife richtig.',
+      ['local i = 1', 'while i <= 3 do', 'print(i)', 'i = i + 1', 'end'],
+      'Erst Variable, dann while, dann Inhalt.',
+      'Die Zählvariable wird in der Schleife verändert.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen einer Funktion richtig.',
+      ['local function SagHallo()', 'print("Hallo")', 'end', 'SagHallo()'],
+      'Erst Funktion schreiben, dann aufrufen.',
+      'Nach der Definition kommt der Aufruf.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['print("Start")', 'wait(1)', 'print("Ende")'],
+      'Der Code läuft von oben nach unten.',
+      'Zuerst kommt Start, dann Pause, dann Ende.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die repeat-until-Struktur.',
+      ['local x = 1', 'repeat', 'print(x)', 'x = x + 1', 'until x == 4'],
+      'repeat beginnt, until beendet die Schleife.',
+      'So sieht der typische Aufbau aus.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['local status = "offen"', 'print("Die Tür ist " .. status)'],
+      'Erst speichern, dann benutzen.',
+      'Der Text nutzt den Wert der Variable.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen einer if-else-Abfrage.',
+      ['local fertig = false', 'if fertig then', 'print("Ende")', 'else', 'print("Noch nicht")', 'end'],
+      'if-else braucht else und end.',
+      'So ist der normale Aufbau.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['local x = 2', 'while x > 0 do', 'print("go")', 'x = x - 1', 'end'],
+      'x wird in der Schleife kleiner.',
+      'Sonst würde die Schleife nicht enden.'
+    ),
+    orderTask("Reihenfolge", 'Ordne diese Zeilen.',
+      ['local level = 2', 'level = level + 3', 'print("Level: " .. level)'],
+      'Erst Wert, dann Veränderung, dann Ausgabe.',
+      'Nur so entsteht das richtige Ergebnis.'
+    ),
+    orderTask("Reihenfolge", 'Ordne diese Zeilen.',
+      ['for i = 1, 3 do', 'print("Blink")', 'wait(0.5)', 'end'],
+      'Die Wartezeit liegt in der Schleife.',
+      'Jeder Schleifendurchgang enthält Ausgabe und Pause.')
+  ];
+}
+
+function buildRoblox(){
+  return [
+    mc("Roblox lesen", 'Was passiert hier wahrscheinlich?', 'local part = workspace.Block\nprint(part.Name)',
+      ['Der Name des Parts Block wird ausgegeben.','Der Part wird gelöscht.','Ein neuer Part wird erstellt.','workspace wird geleert.'], 0,
+      '.Name liest den Namen.',
+      'Der Code greift auf ein Objekt zu und gibt seinen Namen aus.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Transparency = 1',
+      ['Der Part wird unsichtbar.','Der Part wird größer.','Der Part wird rot.','Der Part springt.'], 0,
+      'Transparency bedeutet Durchsichtigkeit.',
+      '1 heißt hier ganz durchsichtig.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Transparency = 0',
+      ['Der Part ist sichtbar.','Der Part verschwindet.','Der Part wird zerstört.','Es wird Text ausgegeben.'], 0,
+      '0 bedeutet nicht durchsichtig.',
+      'Der Part bleibt sichtbar.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'workspace.Part.BrickColor = BrickColor.new("Bright red")',
+      ['Der Part wird rot gefärbt.','Der Part verschwindet.','Der Part bewegt sich.','Der Spieler bekommt Schaden.'], 0,
+      'BrickColor ändert die Farbe.',
+      'Dem Part wird eine rote Farbe gegeben.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Anchored = true',
+      ['Der Part wird fest verankert und fällt nicht.','Der Part wird gelöscht.','Der Part wird durchsichtig.','Der Part wird weich.'], 0,
+      'Anchored heißt fest.',
+      'Ein verankerter Part bewegt sich nicht einfach durch Physik.'
+    ),
+    mc("Roblox lesen", 'Was beschreibt der Code?', 'workspace.Part.CanCollide = false',
+      ['Man kann wahrscheinlich durch den Part durchgehen.','Der Part wird rot.','Der Part verschwindet ganz.','Der Part wird größer.'], 0,
+      'CanCollide betrifft Zusammenstöße.',
+      'Ohne Kollision kann man oft hindurchlaufen.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'workspace.Part.Position = Vector3.new(0, 10, 0)',
+      ['Der Part wird an eine neue Position gesetzt.','Der Part bekommt 10 Leben.','Der Part wird 10-mal kopiert.','Eine Zahl wird ausgegeben.'], 0,
+      'Position legt den Ort fest.',
+      'Vector3.new(...) beschreibt eine Position im Raum.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'workspace.Part.Size = Vector3.new(4, 1, 4)',
+      ['Die Größe des Parts wird geändert.','Der Part wird bewegt.','Der Part wird gelöscht.','Text wird angezeigt.'], 0,
+      'Size bedeutet Größe.',
+      'Breite, Höhe und Tiefe werden gesetzt.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Touched:Connect(function()\n  print("berührt")\nend)',
+      ['Wenn etwas den Part berührt, wird berührt ausgegeben.','berührt wird sofort beim Start gezeigt.','Der Part berührt sich selbst.','Es passiert nie etwas.'], 0,
+      'Touched reagiert auf Berührung.',
+      'Die Funktion läuft erst bei einer Berührung.'
+    ),
+    mc("Roblox lesen", 'Was beschreibt dieser Code?', 'workspace.Part.Touched:Connect(function(hit)\n  print(hit.Name)\nend)',
+      ['Beim Berühren wird der Name des berührenden Objekts ausgegeben.','Der Part bekommt einen neuen Namen.','Der Spieler wird umbenannt.','hit wird gelöscht.'], 0,
+      'hit ist das Objekt, das berührt hat.',
+      'Der Code liest den Namen des berührenden Objekts.'
+    ),
+
+    mc("Roblox lesen", 'Was passiert hier wahrscheinlich?', 'workspace.Part.Touched:Connect(function(hit)\n  if hit.Name == "Ball" then\n    print("Tor")\n  end\nend)',
+      ['Tor wird nur ausgegeben, wenn das berührende Objekt Ball heißt.','Tor wird immer ausgegeben.','Ball wird in Tor umbenannt.','Der Part verschwindet.'], 0,
+      'Im if-Teil wird auf den Namen Ball geprüft.',
+      'Nur dann ist die Bedingung wahr.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.CanCollide = true',
+      ['Der Part hat Kollision und man stößt eher daran an.','Der Part wird durchsichtig.','Der Part wird verankert.','Er wird automatisch rot.'], 0,
+      'true aktiviert die Eigenschaft.',
+      'Mit Kollision kann man den Part nicht einfach so durchlaufen.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'workspace.Part.Anchored = false',
+      ['Der Part ist nicht fest verankert.','Der Part ist unsichtbar.','Der Part wird gelöscht.','Der Part wird blau.'], 0,
+      'false bedeutet: nicht fest.',
+      'Der Part kann dann eher durch Physik bewegt werden.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Name = "Ziel"',
+      ['Der Part bekommt den Namen Ziel.','Ein neuer Part namens Ziel wird erstellt.','Der Spieler heißt Ziel.','Es passiert nichts.'], 0,
+      'Name ändert den Namen eines Objekts.',
+      'Die Eigenschaft Name wird neu gesetzt.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'local p = workspace.Part\np.Transparency = 0.5',
+      ['Der Part wird halb durchsichtig.','Der Part verschwindet ganz.','Der Part wird halb so groß.','Es gibt sicher einen Fehler.'], 0,
+      '0.5 liegt zwischen sichtbar und unsichtbar.',
+      '0.5 bedeutet teilweise durchsichtig.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Material = Enum.Material.Glass',
+      ['Der Part bekommt ein Glas-Material.','Der Part wird gelöscht.','Der Part wird rund.','Der Part wird automatisch unsichtbar.'], 0,
+      'Material verändert das Aussehen der Oberfläche.',
+      'Hier wird dem Part das Material Glass gegeben.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'workspace.Part.Position = workspace.Block.Position',
+      ['Part bekommt dieselbe Position wie Block.','Part wird zu Block umbenannt.','Block verschwindet.','Es wird eine Zahl gezeigt.'], 0,
+      'Eine Position wird von einem Objekt auf ein anderes übertragen.',
+      'Part wird an die Position von Block gesetzt.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.BrickColor = BrickColor.new("Bright blue")',
+      ['Der Part wird blau.','Der Part wird durchsichtig.','Der Part wird kleiner.','Der Spieler springt.'], 0,
+      'BrickColor ändert die Farbe.',
+      'Hier wird eine blaue Farbe gesetzt.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'workspace.Part.Size = workspace.Part.Size + Vector3.new(1, 0, 0)',
+      ['Der Part wird etwas breiter.','Der Part wird gelöscht.','Der Part wird unsichtbar.','Der Part bekommt Schaden.'], 0,
+      'Zur Größe wird etwas addiert.',
+      'Die x-Richtung wird um 1 vergrößert.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Touched:Connect(function(hit)\n  print("Kontakt")\nend)',
+      ['Bei Berührung erscheint Kontakt.','Kontakt erscheint sofort beim Start.','Der Part bewegt sich.','Es passiert nichts.'], 0,
+      'Touched reagiert auf Berührung.',
+      'Der print-Befehl läuft erst bei Kontakt.'
+    ),
+
+    mc("Roblox lesen", 'Was passiert hier?', 'local teil = workspace.Part\nprint(teil.Transparency)',
+      ['Die Transparenz des Parts wird ausgegeben.','Der Part wird unsichtbar.','Die Größe wird ausgegeben.','Ein neuer Part entsteht.'], 0,
+      'print liest hier einen Wert aus.',
+      'Die Eigenschaft wird nur angezeigt, nicht verändert.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Position = Vector3.new(5, 5, 5)\nworkspace.Part.Anchored = true',
+      ['Der Part wird bewegt und dann fest verankert.','Der Part wird gelöscht.','Der Part wird rot.','Der Spieler teleportiert sich.'], 0,
+      'Es sind zwei Eigenschaftsänderungen nacheinander.',
+      'Erst Position, dann Anchored.'
+    ),
+    mc("Roblox lesen", 'Was beschreibt den Code?', 'workspace.Part.Transparency = 1\nworkspace.Part.CanCollide = false',
+      ['Der Part ist unsichtbar und man kann wahrscheinlich hindurchgehen.','Der Part wird rot und fest.','Der Part wird größer.','Es passiert nichts.'], 0,
+      'Zwei Eigenschaften werden verändert.',
+      'Der Part verschwindet optisch und verliert Kollision.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Touched:Connect(function(hit)\n  if hit.Name == "SpielerBall" then\n    workspace.Part.BrickColor = BrickColor.new("Lime green")\n  end\nend)',
+      ['Der Part wird grün, wenn SpielerBall ihn berührt.','Der Part wird immer grün.','SpielerBall wird grün.','Der Part wird gelöscht.'], 0,
+      'Die Farbe ändert sich nur im if-Teil.',
+      'Die Bedingung muss zuerst wahr sein.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'workspace.Part.Name = "Start"\nprint(workspace.Part.Name)',
+      ['Es wird Start ausgegeben.','Der Part verschwindet.','Der Name bleibt gleich.','Es gibt sicher einen Fehler.'], 0,
+      'Der Name wird gesetzt und danach gelesen.',
+      'Zuerst wird die Eigenschaft geändert, dann ausgegeben.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'local pos = workspace.Part.Position\nprint(pos)',
+      ['Die Position des Parts wird ausgegeben.','Der Part wird bewegt.','Der Part wird gelöscht.','Die Größe wird verändert.'], 0,
+      'Position kann gelesen und gespeichert werden.',
+      'Der Code verändert nichts, sondern liest nur einen Wert.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'workspace.Part.Size = Vector3.new(2,2,2)\nprint("fertig")',
+      ['Die Größe wird gesetzt und danach steht fertig im Output.','Nur fertig wird gezeigt.','Nur die Größe ändert sich ohne Output.','Der Part verschwindet.'], 0,
+      'Erst Eigenschaft, dann print.',
+      'Beide Zeilen werden nacheinander ausgeführt.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Transparency = 0\nworkspace.Part.BrickColor = BrickColor.new("Bright yellow")',
+      ['Der Part bleibt sichtbar und wird gelb.','Der Part wird unsichtbar und gelb.','Der Part wird gelöscht.','Der Spieler wird gelb.'], 0,
+      '0 bedeutet sichtbar.',
+      'Außerdem wird die Farbe geändert.'
+    ),
+    mc("Roblox lesen", 'Was passiert hier?', 'workspace.Part.Anchored = true\nworkspace.Part.CanCollide = false',
+      ['Der Part ist fest, aber ohne Kollision.','Der Part ist weich und durchsichtig.','Der Part wird gelöscht.','Der Part bewegt sich frei.'], 0,
+      'Anchored und CanCollide sind verschiedene Eigenschaften.',
+      'Fest verankert und trotzdem ohne Kollision kann gleichzeitig sein.'
+    ),
+    mc("Roblox lesen", 'Welche Geschichte passt?', 'workspace.Part.Touched:Connect(function(hit)\n  print("Getroffen von: " .. hit.Name)\nend)',
+      ['Bei Berührung wird der Name des berührenden Objekts mit Text ausgegeben.','Der Name des Parts wird geändert.','Das hit-Objekt wird gelöscht.','Es passiert nichts.'], 0,
+      'Text wird mit hit.Name verbunden.',
+      'Bei einer Berührung wird eine Meldung erzeugt.'
+    ),
+
+    orderTask("Reihenfolge", 'Ordne die Zeilen für eine einfache Berührungsmeldung.',
+      ['workspace.Part.Touched:Connect(function()', 'print("berührt")', 'end)'],
+      'Zuerst beginnt die Verbindung, dann kommt der Inhalt, dann das Ende.',
+      'So ist der Grundaufbau dieses Ereignisses.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['workspace.Part.Transparency = 1', 'workspace.Part.CanCollide = false'],
+      'Erst eins, dann das andere – beide Zeilen sind normale Befehle.',
+      'Der Code läuft der Reihe nach von oben nach unten.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['local part = workspace.Part', 'print(part.Name)'],
+      'Erst Objekt holen, dann Eigenschaft benutzen.',
+      'Die Variable part muss zuerst existieren.'
+    ),
+    orderTask("Reihenfolge", 'Ordne diese Zeilen.',
+      ['workspace.Part.Position = Vector3.new(0, 10, 0)', 'workspace.Part.Anchored = true'],
+      'Beide Zeilen sind normale Anweisungen nacheinander.',
+      'Erst bewegen, dann verankern ist eine sinnvolle Reihenfolge.'
+    ),
+    orderTask("Reihenfolge", 'Ordne diese Zeilen.',
+      ['workspace.Part.BrickColor = BrickColor.new("Bright red")', 'print("fertig")'],
+      'Erst Eigenschaft ändern, dann Rückmeldung.',
+      'Die Ausgabe kommt nach der Änderung.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['workspace.Part.Name = "Ziel"', 'print(workspace.Part.Name)'],
+      'Erst Name setzen, dann Name lesen.',
+      'Nur so wird der neue Name ausgegeben.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen.',
+      ['local pos = workspace.Part.Position', 'print(pos)'],
+      'Erst lesen und speichern, dann ausgeben.',
+      'Die Variable pos muss zuerst befüllt werden.'
+    ),
+    orderTask("Reihenfolge", 'Ordne eine if-Prüfung bei Berührung.',
+      ['workspace.Part.Touched:Connect(function(hit)', 'if hit.Name == "Ball" then', 'print("Tor")', 'end', 'end)'],
+      'In der Funktion liegt noch eine if-Abfrage.',
+      'Zuerst Event, dann if, dann Inhalt, dann zwei Abschlüsse.'
+    ),
+    orderTask("Reihenfolge", 'Ordne die Zeilen richtig.',
+      ['workspace.Part.Size = Vector3.new(4, 1, 4)', 'workspace.Part.Transparency = 0'],
+      'Erst Größe, dann Sichtbarkeit – beides sind normale Zeilen.',
+      'Der Ablauf ist einfach von oben nach unten.'
+    ),
+    orderTask("Reihenfolge", 'Ordne diese Zeilen.',
+      ['workspace.Part.Anchored = true', 'workspace.Part.BrickColor = BrickColor.new("Bright blue")'],
+      'Beides sind einfache Eigenschaftsänderungen.',
+      'Die erste Zeile macht den Part fest, die zweite färbt ihn.')
+  ];
+}
+
+/* ===== Spielzustand ===== */
+const allLevels = {
+  leicht: buildLeicht(),
+  mittel: buildMittel(),
+  roblox: buildRoblox()
+};
+
+let currentLevelKey = null;
+let currentLevelTasks = [];
+let queue = [];
+let currentTask = null;
 let score = 0;
-let stars = 0;
-let lives = 3;
+let mastered = 0;
 let answered = false;
+let currentCorrectShown = -1;
 let selectedOrder = [];
-let hintShown = false;
+let orderDisplayItems = [];
 
+/* ===== Elemente ===== */
 const startScreen = document.getElementById("startScreen");
 const gameScreen = document.getElementById("gameScreen");
 const endScreen = document.getElementById("endScreen");
 
+const levelNameBox = document.getElementById("levelNameBox");
+const masteredBox = document.getElementById("masteredBox");
+const remainingBox = document.getElementById("remainingBox");
 const scoreBox = document.getElementById("scoreBox");
-const starsBox = document.getElementById("starsBox");
-const livesBox = document.getElementById("livesBox");
-const levelBox = document.getElementById("levelBox");
 const progressBar = document.getElementById("progressBar");
 
 const levelTag = document.getElementById("levelTag");
@@ -735,179 +971,180 @@ const hintEl = document.getElementById("hint");
 const hintBtn = document.getElementById("hintBtn");
 const orderContainer = document.getElementById("orderContainer");
 const orderArea = document.getElementById("orderArea");
+const selectedInfo = document.getElementById("selectedInfo");
+const clearOrderBtn = document.getElementById("clearOrderBtn");
 
-function shuffle(arr){
-  const a = arr.slice();
-  for(let i = a.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function startGame(){
-  gameTasks = shuffle(tasks);
-  currentIndex = 0;
-  score = 0;
-  stars = 0;
-  lives = 3;
-  switchScreen(gameScreen);
-  showTask();
-  updateStatus();
-}
-
-function restartGame(){
-  startGame();
-}
-
+/* ===== Screens ===== */
 function switchScreen(screen){
   [startScreen, gameScreen, endScreen].forEach(s => s.classList.remove("active"));
   screen.classList.add("active");
 }
 
-function updateStatus(){
-  scoreBox.textContent = "Punkte: " + score;
-  starsBox.textContent = "Sterne: " + stars;
-  livesBox.textContent = "Herzen: " + "❤".repeat(lives) + "🖤".repeat(3 - lives);
-  const task = gameTasks[currentIndex];
-  if(task){
-    levelBox.textContent = "Level: " + task.level;
-  }
-  const percent = (currentIndex / gameTasks.length) * 100;
-  progressBar.style.width = percent + "%";
+function backToMenu(){
+  switchScreen(startScreen);
 }
 
-function showTask(){
-  if(currentIndex >= gameTasks.length || lives <= 0){
-    endGame();
+function levelDisplayName(key){
+  if(key === "leicht") return "Leicht";
+  if(key === "mittel") return "Mittel";
+  if(key === "roblox") return "Roblox";
+  return "–";
+}
+
+/* ===== Levelstart ===== */
+function startLevel(key){
+  currentLevelKey = key;
+  currentLevelTasks = allLevels[key].map((task, index) => ({
+    id: index + 1,
+    ...task
+  }));
+
+  score = 0;
+  mastered = 0;
+  queue = shuffle(currentLevelTasks.slice());
+  switchScreen(gameScreen);
+  loadNextCurrentTask();
+}
+
+function restartCurrentLevel(){
+  if(currentLevelKey){
+    startLevel(currentLevelKey);
+  }
+}
+
+function loadNextCurrentTask(){
+  if(queue.length === 0){
+    finishLevel();
     return;
   }
 
-  const task = gameTasks[currentIndex];
+  currentTask = queue[0];
   answered = false;
+  currentCorrectShown = -1;
   selectedOrder = [];
-  hintShown = false;
+  orderDisplayItems = [];
 
-  levelTag.textContent = "Level " + task.level;
-  taskType.textContent = task.taskLabel;
-  question.textContent = task.q;
+  updateStatus();
+  renderTask();
+}
+
+/* ===== Anzeige ===== */
+function updateStatus(){
+  levelNameBox.textContent = "Bereich: " + levelDisplayName(currentLevelKey);
+  masteredBox.textContent = "Richtig gelöst: " + mastered + " / 30";
+  remainingBox.textContent = "Noch offen: " + queue.length;
+  scoreBox.textContent = "Punkte: " + score;
+
+  const percent = (mastered / 30) * 100;
+  progressBar.style.width = percent + "%";
+}
+
+function renderTask(){
+  levelTag.textContent = levelDisplayName(currentLevelKey);
+  taskType.textContent = currentTask.taskLabel;
+  question.textContent = currentTask.q;
+
   feedback.textContent = "";
   explain.textContent = "";
-  hintEl.textContent = task.hint || "";
+  hintEl.textContent = currentTask.hint || "";
   hintEl.style.display = "none";
-  hintBtn.style.display = task.hint ? "inline-block" : "none";
+  hintBtn.style.display = currentTask.hint ? "inline-block" : "none";
   hintBtn.textContent = "Hinweis anzeigen";
 
-  if(task.code){
+  answersEl.innerHTML = "";
+  orderArea.innerHTML = "";
+  orderContainer.style.display = "none";
+  clearOrderBtn.style.display = "none";
+  selectedInfo.textContent = "Ausgewählt: –";
+
+  if(currentTask.code && currentTask.code.trim() !== ""){
     codeBox.style.display = "block";
-    codeText.textContent = task.code;
+    codeText.textContent = currentTask.code;
   } else {
     codeBox.style.display = "none";
     codeText.textContent = "";
   }
 
-  answersEl.innerHTML = "";
-  orderArea.innerHTML = "";
-  orderContainer.style.display = "none";
-
-  if(task.type === "order"){
-    orderContainer.style.display = "block";
-    const mixed = shuffle(task.orderLines.map((line, index) => ({line, index})));
-    mixed.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "orderLine";
-      div.textContent = item.line;
-      div.onclick = () => selectOrderLine(item.index, item.line, div);
-      orderArea.appendChild(div);
-    });
-
-    const checkBtn = document.createElement("button");
-    checkBtn.className = "primary";
-    checkBtn.textContent = "Reihenfolge prüfen";
-    checkBtn.onclick = checkOrder;
-    answersEl.appendChild(checkBtn);
-  } else {
-    const order = shuffle([0,1,2,3]);
-    const shownCorrect = order.indexOf(task.correct);
-
-    order.forEach((origIndex, shownIndex) => {
-      const btn = document.createElement("button");
-      btn.className = "answerBtn";
-      btn.textContent = task.answers[origIndex];
-      btn.onclick = () => answerChoice(shownIndex, shownCorrect, btn, order);
-      answersEl.appendChild(btn);
-    });
+  if(currentTask.mode === "mc"){
+    renderMcTask();
+  } else if(currentTask.mode === "order"){
+    renderOrderTask();
   }
-
-  updateStatus();
 }
 
-function answerChoice(shownIndex, shownCorrect, btn, order){
-  if(answered) return;
-  answered = true;
+function renderMcTask(){
+  const order = shuffle([0,1,2,3]);
+  currentCorrectShown = order.indexOf(currentTask.correct);
 
-  const buttons = [...answersEl.querySelectorAll(".answerBtn")];
-  buttons.forEach((b, i) => {
-    b.classList.add("disabled");
-    if(i === shownCorrect) b.classList.add("correct");
+  order.forEach((origIndex, shownIndex) => {
+    const btn = document.createElement("button");
+    btn.className = "answerBtn";
+    btn.textContent = currentTask.answers[origIndex];
+    btn.onclick = () => answerMc(shownIndex, btn);
+    answersEl.appendChild(btn);
+  });
+}
+
+function renderOrderTask(){
+  orderContainer.style.display = "block";
+  clearOrderBtn.style.display = "inline-block";
+
+  orderDisplayItems = shuffle(
+    currentTask.lines.map((line, originalIndex) => ({
+      originalIndex,
+      line
+    }))
+  );
+
+  orderDisplayItems.forEach((item, displayIndex) => {
+    const div = document.createElement("div");
+    div.className = "orderLine";
+    div.dataset.displayIndex = displayIndex;
+    div.onclick = () => toggleOrderItem(displayIndex, div);
+    orderArea.appendChild(div);
   });
 
-  const task = gameTasks[currentIndex];
-  if(shownIndex === shownCorrect){
-    feedback.textContent = "Richtig!";
-    score += 10;
-    stars += 1;
+  redrawOrderArea();
+
+  const checkBtn = document.createElement("button");
+  checkBtn.className = "primary";
+  checkBtn.textContent = "Reihenfolge prüfen";
+  checkBtn.onclick = checkOrderTask;
+  answersEl.appendChild(checkBtn);
+}
+
+function redrawOrderArea(){
+  [...orderArea.children].forEach((div, displayIndex) => {
+    const item = orderDisplayItems[displayIndex];
+    const position = selectedOrder.indexOf(displayIndex);
+
+    div.classList.toggle("selected", position !== -1);
+
+    if(position !== -1){
+      div.innerHTML = `<span class="orderNumber">${position + 1}.</span>${escapeHtml(item.line)}`;
+    } else {
+      div.innerHTML = `<span class="orderNumber">–</span>${escapeHtml(item.line)}`;
+    }
+  });
+
+  if(selectedOrder.length === 0){
+    selectedInfo.textContent = "Ausgewählt: –";
   } else {
-    btn.classList.add("wrong");
-    feedback.textContent = "Noch nicht richtig.";
-    lives -= 1;
-  }
-
-  explain.textContent = task.explain || "";
-  updateStatus();
-
-  if(lives <= 0){
-    endGame();
+    const text = selectedOrder
+      .map((displayIndex, i) => `${i + 1}. ${orderDisplayItems[displayIndex].line}`)
+      .join(" | ");
+    selectedInfo.textContent = "Ausgewählt: " + text;
   }
 }
 
-function selectOrderLine(index, line, element){
-  if(answered) return;
-  if(element.classList.contains("selected")) return;
-
-  element.classList.add("selected");
-  selectedOrder.push(index);
+function escapeHtml(str){
+  return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
-function checkOrder(){
-  if(answered) return;
-  const task = gameTasks[currentIndex];
-
-  if(selectedOrder.length !== task.correctOrder.length){
-    feedback.textContent = "Du musst alle Zeilen auswählen.";
-    return;
-  }
-
-  answered = true;
-  const correct = JSON.stringify(selectedOrder) === JSON.stringify(task.correctOrder);
-
-  if(correct){
-    feedback.textContent = "Richtig!";
-    score += 12;
-    stars += 1;
-  } else {
-    feedback.textContent = "Noch nicht richtig.";
-    lives -= 1;
-  }
-
-  explain.textContent = task.explain || "";
-  updateStatus();
-
-  if(lives <= 0){
-    endGame();
-  }
-}
-
+/* ===== Interaktion ===== */
 function toggleHint(){
   if(hintEl.style.display === "block"){
     hintEl.style.display = "none";
@@ -918,29 +1155,113 @@ function toggleHint(){
   }
 }
 
-function nextTask(){
-  if(!answered){
-    feedback.textContent = "Beantworte zuerst die Aufgabe.";
-    return;
+function answerMc(shownIndex, btn){
+  if(answered) return;
+  answered = true;
+
+  const buttons = [...answersEl.querySelectorAll(".answerBtn")];
+  buttons.forEach((b, i) => {
+    b.classList.add("disabled");
+    if(i === currentCorrectShown) b.classList.add("correct");
+  });
+
+  if(shownIndex === currentCorrectShown){
+    feedback.textContent = "Richtig!";
+    explain.textContent = currentTask.explain || "";
+    score += 10;
+    mastered++;
+    queue.shift();
+  } else {
+    btn.classList.add("wrong");
+    feedback.textContent = "Noch nicht richtig. Diese Aufgabe kommt später noch einmal.";
+    explain.textContent = currentTask.explain || "";
+    score = Math.max(0, score - 2);
+
+    const wrongTask = queue.shift();
+    queue.push(wrongTask);
   }
-  currentIndex++;
-  showTask();
+
+  updateStatus();
+
+  if(queue.length === 0){
+    finishLevel();
+  }
 }
 
-function endGame(){
-  switchScreen(endScreen);
-  progressBar.style.width = "100%";
+function toggleOrderItem(displayIndex, div){
+  if(answered) return;
 
-  let text = "";
-  if(lives <= 0){
-    text = "Deine Herzen sind aufgebraucht. Das ist nicht schlimm – bei Code lesen hilft Wiederholen sehr.";
+  const existingPos = selectedOrder.indexOf(displayIndex);
+  if(existingPos !== -1){
+    selectedOrder.splice(existingPos, 1);
   } else {
-    text = "Du hast alle Aufgaben geschafft.";
+    selectedOrder.push(displayIndex);
   }
 
-  document.getElementById("finalText").textContent = text;
+  redrawOrderArea();
+}
+
+function clearOrderSelection(){
+  if(answered) return;
+  selectedOrder = [];
+  redrawOrderArea();
+}
+
+function checkOrderTask(){
+  if(answered) return;
+
+  if(selectedOrder.length !== currentTask.lines.length){
+    feedback.textContent = "Du musst alle Zeilen auswählen.";
+    explain.textContent = "";
+    return;
+  }
+
+  answered = true;
+
+  const selectedOriginalOrder = selectedOrder.map(displayIndex => orderDisplayItems[displayIndex].originalIndex);
+  const correctOrder = currentTask.lines.map((_, i) => i);
+  const isCorrect = JSON.stringify(selectedOriginalOrder) === JSON.stringify(correctOrder);
+
+  if(isCorrect){
+    feedback.textContent = "Richtig!";
+    explain.textContent = currentTask.explain || "";
+    score += 12;
+    mastered++;
+    queue.shift();
+  } else {
+    feedback.textContent = "Noch nicht richtig. Diese Aufgabe kommt später noch einmal.";
+    explain.textContent = currentTask.explain || "";
+    score = Math.max(0, score - 2);
+
+    const wrongTask = queue.shift();
+    queue.push(wrongTask);
+  }
+
+  updateStatus();
+
+  if(queue.length === 0){
+    finishLevel();
+  }
+}
+
+function nextTask(){
+  if(!answered){
+    feedback.textContent = "Beantworte zuerst die aktuelle Aufgabe.";
+    return;
+  }
+
+  loadNextCurrentTask();
+}
+
+/* ===== Ende ===== */
+function finishLevel(){
+  switchScreen(endScreen);
+  document.getElementById("endTitle").textContent = levelDisplayName(currentLevelKey) + " geschafft!";
+  document.getElementById("finalText").textContent =
+    "Alle 30 Aufgaben dieses Bereichs wurden richtig gelöst. Falsche Aufgaben sind so lange wiedergekommen, bis sie verstanden wurden.";
   document.getElementById("finalScore").textContent = "Punkte: " + score;
-  document.getElementById("finalStars").textContent = "Sterne: " + stars;
+  document.getElementById("finalSolved").textContent = "Richtig gelöst: 30 / 30";
+  progressBar.style.width = "100%";
 }
 </script>
 </body>
